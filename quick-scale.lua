@@ -1,7 +1,7 @@
 -- -----------------------------------------------------------
 --
 -- QUICK-SCALE.LUA
--- Version: 1.0
+-- Version: 1.1
 -- Author: SteveJobzniak
 -- URL: https://github.com/SteveJobzniak/mpv-tools
 --
@@ -11,6 +11,11 @@
 --  with full control over target scale and max scale.
 --  Helps you effortlessly resize a video to fit on your
 --  desktop, or any other video dimensions you need!
+--
+-- History:
+--
+--  1.0: Initial release.
+--  1.1: Do nothing if mpv is in fullscreen mode.
 --
 -- -----------------------------------------------------------
 --
@@ -39,6 +44,11 @@
 --      This means that small videos won't become big and blurry.
 --    1.5: Video will only be allowed to enlarge to 150% of its natural size.
 function quick_scale(targetwidth, targetheight, targetscale, maxvideoscale)
+    -- Don't attempt to scale the fullscreen window.
+    if (mp.get_property_bool("fullscreen", false)) then
+        return nil -- abort
+    end
+
     -- Check parameter existence.
     if (targetwidth == nil or targetheight == nil
             or targetscale == nil or maxvideoscale == nil)
