@@ -2,7 +2,7 @@
 --
 -- MULTI-COMMAND-IF.LUA
 -- Short Name: MCIF (Multi-Command If)
--- Version: 1.0
+-- Version: 1.1
 -- Author: SteveJobzniak
 -- URL: https://github.com/SteveJobzniak/mpv-tools
 --
@@ -11,6 +11,13 @@
 --  Very powerful conditional logic and multiple
 --  action engine for your keybindings, without
 --  having to write a single line of code!
+--
+--  See the bottom of this file for usage examples.
+--
+-- History:
+--
+--  1.1: + Support for multiple empty command arguments in a row.
+--       + Added Multi_Command, to easily run without conditions.
 --
 -- -----------------------------------------------------------
 --
@@ -47,19 +54,40 @@
 --
 --  And see the bottom of this file for usage examples to get you started.
 --
+-- -----------------------------------------------------------
+--
+-- [Internal string splitter used for perfect argument separation:]
+function mcif_string_split(theString, inSplitPattern, outResults)
+    if (not outResults) then
+        outResults = {}
+    end
+    if (theString ~= nil) then -- avoid missing strings
+        local theStart = 1
+        local theSplitStart, theSplitEnd = string.find(theString, inSplitPattern, theStart)
+        while theSplitStart do
+            table.insert(outResults, string.sub(theString, theStart, theSplitStart-1))
+            theStart = theSplitEnd + 1
+            theSplitStart, theSplitEnd = string.find(theString, inSplitPattern, theStart)
+        end
+        table.insert(outResults, string.sub(theString, theStart))
+    end
+    return outResults
+end
+
 function multi_command_if(conditions, if_actions, else_actions)
     --
     -- Check all conditions and choose the if_actions if ALL conditions
-    -- are TRUE, or choose the else_actions if ANY of them are FALSE.
-    -- This lets you decide whether or not your actions should run.
+    --  are TRUE, or choose the else_actions if ANY of them are FALSE.
+    --  This lets you decide whether or not your actions should run.
     -- You can have an unlimited amount of conditions.
     --
     -- Can be left as empty string (or one simply lacking conditions,
-    -- such as "(())" which looks nicer), to completely avoid having
-    -- any conditions! In that case, the "if_actions" will be chosen!
+    --  such as "(())" which looks nicer), to completely avoid having
+    --  any conditions! In that case, the "if_actions" will be chosen!
     -- That feature can be useful if you just want to enjoy the
-    -- powerful action-sequencing capabilities of this script,
-    -- and the various nice shorthand notations it gives you!
+    --  powerful action-sequencing capabilities of this script,
+    --  and the various nice shorthand notations it gives you!
+    --  There is a "multi_command()" wrapper which does this for you.
     --
     -- * "conditions" parameter string format example:
     -- "((fullscreen=='no'))((ontop~='yes'))((window-scale<<'1'))"
@@ -89,9 +117,9 @@ function multi_command_if(conditions, if_actions, else_actions)
         actions = if_actions
     else -- Determine which actions to use.
         -- The parameter string format example would split into:
-        -- fullscreen     ==    no
-        -- ontop          ~=    yes
-        -- window-scale   <<    1
+        --  fullscreen     ==    no
+        --  ontop          ~=    yes
+        --  window-scale   <<    1
         local conditionFailed = false
         for propName,propComparisonMethod,propCompareValue in string.gmatch(conditions, "%(%(([^']-)(..)'(.-)'%)%)") do
             -- Retrieve the current mpv property value as string for comparison.
@@ -103,16 +131,16 @@ function multi_command_if(conditions, if_actions, else_actions)
             end
             -- Perform the requested method of comparison.
             -- NOTE: We cannot compare strings with numbers or vice versa, and
-            -- we cannot check greater/less than for numbers if we don't treat
-            -- them as numbers. So we need to determine the common value type
-            -- and do either a numeric or string comparison. As for booleans
-            -- "true" and "false", we will compare those as strings. And nil
-            -- will be compared as the string "nil". If the values weren't both
-            -- convertible to numbers or both to strings, then we consider the
-            -- values to be of mixed types, which cannot be numerically compared
-            -- in Lua. But ANY value (even tables and function references) CAN
-            -- be converted to a string so the "mixed" scenario should never be
-            -- able to happen. It is just there as a safeguard against exceptions.
+            --  we cannot check greater/less than for numbers if we don't treat
+            --  them as numbers. So we need to determine the common value type
+            --  and do either a numeric or string comparison. As for booleans
+            --  "true" and "false", we will compare those as strings. And nil
+            --  will be compared as the string "nil". If the values weren't both
+            --  convertible to numbers or both to strings, then we consider the
+            --  values to be of mixed types, which cannot be numerically compared
+            --  in Lua. But ANY value (even tables and function references) CAN
+            --  be converted to a string so the "mixed" scenario should never be
+            --  able to happen. It is just there as a safeguard against exceptions.
             local aN = tonumber(propCurrentValue)
             local bN = tonumber(propCompareValue)
             local aS = tostring(propCurrentValue) -- these handle bool and nil too.
@@ -157,8 +185,8 @@ function multi_command_if(conditions, if_actions, else_actions)
             end
         end
         -- End of loop: If the LAST condition succeeded then ALL of them succeeded,
-        -- since we would have quit above as soon as any of them failed. So in this
-        -- case, choose the if_actions since ALL conditions succeeded.
+        --  since we would have quit above as soon as any of them failed. So in this
+        --  case, choose the if_actions since ALL conditions succeeded.
         if (not conditionFailed) then
             actions = if_actions
         end
@@ -201,7 +229,16 @@ function multi_command_if(conditions, if_actions, else_actions)
     --   @  execute a script-message command with property expansion (it's an
     --        alias for "{{$script-message:Target_Name|Arg1|Arg2...:}}")
     --
-    -- The command or script message arguments are separated by |.
+    -- To call a command which takes no arguments, simply leave the value
+    --  between the two colons blank, such as "{{@ArglessCommand::}}".
+    --
+    -- And to skip arguments (and just send empty strings for those arguments),
+    --  simply leave that part totally blank between the separators:
+    --  "{{!empty-example:|foo:}}" (sends arg1="", arg2="foo")
+    --  "{{!empty-example:foo|:}}" (sends arg1="foo", arg2="")
+    --  "{{!empty-example:foo|||bar:}}" (sends arg1="foo", arg2="", arg3="", arg4="bar")
+    --
+    -- The command or script message arguments are always separated by |.
     -- There is no way to escape that character or make it more unique, because
     --  Lua sucks at splitting strings by anything more than a single character,
     --  BUT this character is non-existent in all commands I've ever seen!
@@ -214,10 +251,10 @@ function multi_command_if(conditions, if_actions, else_actions)
     --
     if (actions ~= nil and actions ~= "") then
         -- The parameter string format example would split into:
-        -- =    ontop          yes
-        -- !    multiply       speed|1.25
-        -- $    show-text      Speed? It's now ${speed}.
-        -- @    Quick_Scale    1680|1050|0.9|1
+        --  =    ontop          yes
+        --  !    multiply       speed|1.25
+        --  $    show-text      Speed? It's now ${speed}.
+        --  @    Quick_Scale    1680|1050|0.9|1
         for actionType,targetName,targetValue in string.gmatch(actions, "{{(.)([^:]-):(.-):}}") do
             -- Pre-processing to translate the "@" ("script-message") action shorthand.
             if (actionType == "@") then
@@ -246,7 +283,7 @@ function multi_command_if(conditions, if_actions, else_actions)
                 local allArgs = {}
                 allArgs[1] = targetName
                 local currentArgNum = 2
-                for token in string.gmatch(targetValue, "[^|]+") do
+                for k,token in pairs(mcif_string_split(targetValue, "|")) do
                     allArgs[currentArgNum] = token
                     currentArgNum = currentArgNum + 1
                 end
@@ -266,6 +303,11 @@ function multi_command_if(conditions, if_actions, else_actions)
             end
         end
     end
+end
+
+-- Wrapper for those who just want to run actions and don't care about conditions.
+function multi_command(actions)
+    multi_command_if(nil, actions, nil)
 end
 
 --
@@ -294,3 +336,10 @@ end
 --   Alt+d script-message Multi_Command_If "((ontop=='yes'))((fullscreen=='no'))" "{{!show-text:Always on top, and not in fullscreen.:}}"
 --
 mp.register_script_message("Multi_Command_If", multi_command_if)
+--
+-- * And a small bonus for people who just want to run actions using the nice,
+--   compact syntax of MCIF, without checking any conditions:
+--
+--   Alt+d script-message Multi_Command "{{=ontop:yes:}}{{!multiply:window-scale|1.1:}}{{!show-text:Enhance!:}}"
+--
+mp.register_script_message("Multi_Command", multi_command)
