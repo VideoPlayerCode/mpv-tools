@@ -1,0 +1,24 @@
+# Menu appearance.
+auto_close=0
+max_lines=12
+font_size=40
+help_hint=no
+
+# Favorite paths.
+favorites={/home/example/Movies}+{/home/example/Downloads}+{/home/example/Documents}+{/}
+
+# Key rebindings.
+#
+# Recommendation:
+#  Bind the main "Backbox" menu command (via input.conf)
+#  to "z" and use the left-hand navigation below.
+keys_menu_up={up}+{w}
+keys_menu_down={down}+{s}
+keys_menu_up_fast={shift+up}+{shift+w}
+keys_menu_down_fast={shift+down}+{shift+s}
+keys_menu_left={left}+{a}
+keys_menu_right={right}+{d}
+keys_menu_open={enter}+{e}
+keys_menu_undo={bs}+{r}
+keys_menu_help={h}
+keys_menu_close={esc}+{c}
