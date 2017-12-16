@@ -1,0 +1,11 @@
+# temporary editor files
+*.swp
+.\#*
+*.sublime-project
+*.sublime-workspace
+.idea
+
+# operating system cache files
+.DS_Store
+Desktop.ini
+Thumbs.db
