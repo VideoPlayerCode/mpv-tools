@@ -25,6 +25,10 @@
   scale and max scale. Helps you effortlessly resize a video to fit on your
   desktop, or any other video dimensions you need!
 
+### Download
+
+Easily download all scripts as a zip file: [mpv-tools-master.zip](https://github.com/SteveJobzniak/mpv-tools/archive/master.zip).
+
 ### Requirements
 
 You need the [mpv.io](http://mpv.io) media player, built with Lua (`.lua`) and
