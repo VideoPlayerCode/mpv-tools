@@ -101,6 +101,11 @@ Utils.quickSort_Run = function(arr, sortRef)
     return arr;
 };
 
+Utils.dump = function(value)
+{
+    mp.msg.error(JSON.stringify(value));
+};
+
 Utils.benchmarkStart = function(textLabel)
 {
     Utils.benchmarkTimestamp = mp.get_time();
