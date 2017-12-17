@@ -549,25 +549,38 @@ Backbox.prototype.navigateDir = function(path, selectEntry, forceRefresh)
     }
 };
 
-Backbox.prototype.cycleMenu = function()
+Backbox.prototype.switchMenu = function(forcePage)
 {
-    // Flip to the next page, but skip "favorites" if none exist.
-    // NOTE: Skipping "empty favorites" now disabled since it has useful links.
-    this.flipPage();
-    // if (this.currentPage === 'favorites' && !this.favoritePaths.length)
-    //     this.flipPage();
+    if (typeof forcePage === 'string') {
+        // We're being asked to go to a specific page. Toggle if already there.
+        if (forcePage === this.currentPage)
+            forcePage = 'none';
+        this.flipPage(forcePage);
+    } else {
+        // Flip to the next menu page.
+        this.flipPage();
+        // NOTE: The method below can be used for skipping past empty pages.
+        // if (this.currentPage === 'favorites' && !this.favoritePaths.length)
+        //     this.flipPage();
+    }
 
-    // Render the page, or hide the menu if there were no more pages.
+    // Render the page, or hide menu if there were no more pages/toggled off.
     if (this.currentPage === null)
         this.menu.hideMenu();
     else {
         // Stop any lingering menu-message before swapping the page.
         this.menu.stopMessage();
 
-        if (this.currentPage === 'favorites')
+        switch (this.currentPage) {
+        case 'favorites':
             this.navigateFav(this.lastPageSelection.favorites);
-        else
+            break;
+        case 'files':
             this.navigateDir(this.currentPath, this.lastPageSelection.files);
+            break;
+        default:
+            mp.msg.error('Unknown menu page: '+this.currentPage);
+        }
     }
 };
 
@@ -640,6 +653,14 @@ Backbox.prototype.cycleMenu = function()
     // * Bind this via input.conf: `ctrl+b script-binding Backbox`.
     // - To get to your favorites (if you've added some), press this key twice.
     mp.add_key_binding(null, 'Backbox', function() {
-        browser.cycleMenu();
+        browser.switchMenu();
+    });
+
+    // Provide bindings that go directly to (or toggle off) each specific page.
+    mp.add_key_binding(null, 'Backbox_Files', function() {
+        browser.switchMenu('files');
+    });
+    mp.add_key_binding(null, 'Backbox_Favorites', function() {
+        browser.switchMenu('favorites');
     });
 })();
