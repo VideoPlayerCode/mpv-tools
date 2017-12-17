@@ -219,6 +219,8 @@ Backbox.prototype._registerCallbacks = function()
             selectEntry = null;
 
         switch (selection.menuPage) {
+        case 'files':
+            break;
         case 'favorites':
             if (targetPath === browser.currentlyPlayingStr) {
                 var playingFile = PlaylistManager.getCurrentlyPlayingLocal(true);
@@ -232,8 +234,6 @@ Backbox.prototype._registerCallbacks = function()
                     return null;
                 }
             }
-            break;
-        case 'files':
             break;
         default:
             return null; // Unknown page.
@@ -426,24 +426,27 @@ Backbox.prototype.getSelection = function()
 
     var selectedItem = this.menu.getSelectedItem();
 
-    // Handle the selection as a favorites-page item.
-    if (selection.menuPage === 'favorites') {
+    switch (selection.menuPage) {
+    case 'files':
+        var isDir = selectedItem.substring(selectedItem.length - 1) === '/';
+        if (isDir)
+            selectedItem = selectedItem.substring(0, selectedItem.length - 1);
+        selection.item = selectedItem;
+        selection.itemType = isDir ? 'dir' : 'file';
+
+        if (selectedItem.length)
+            selection.targetPath = PathTools.getSubPath(this.currentPath, selectedItem);
+        break;
+    case 'favorites':
         selection.item = selectedItem;
         selection.itemType = 'favorite';
         selection.targetPath = selection.item !== this.currentlyPlayingStr ?
             PathTools.makePathAbsolute(selection.item) : selection.item;
-        return selection;
+        break;
+    default:
+        mp.msg.error('Unknown menu page: '+selection.menuPage);
+        selection.menuPage = null; // We can't parse selection for this page.
     }
-
-    // Handle the selection as a files-page item and detect type from its name.
-    var isDir = selectedItem.substring(selectedItem.length - 1) === '/';
-    if (isDir)
-        selectedItem = selectedItem.substring(0, selectedItem.length - 1);
-    selection.item = selectedItem;
-    selection.itemType = isDir ? 'dir' : 'file';
-
-    if (selectedItem.length)
-        selection.targetPath = PathTools.getSubPath(this.currentPath, selectedItem);
 
     return selection;
 };
