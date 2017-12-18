@@ -350,7 +350,7 @@ Backbox.prototype._registerCallbacks = function()
 
             // Show the basename and playlist-pos of the file that was removed.
             var c = browser.menu.useTextColors,
-                lastFilename = lastItem ? PathTools.getBasename(lastItem.filename) : '',
+                lastFilename = lastItem ? browser._shrinkFilename(lastItem.filename) : '',
                 clearSelectionPrefix = false;
             if (lastItem && !PathTools.isWebURL(lastItem.filename)) {
                 var lastFullPath = PathTools.makePathAbsolute(lastItem.filename);
@@ -370,6 +370,13 @@ Backbox.prototype._registerCallbacks = function()
             browser.menu.showMessage('Cannot remove the only remaining playlist item.');
         }
     });
+};
+
+Backbox.prototype._shrinkFilename = function(path)
+{
+    if (!PathTools.isWebURL(path)) // Shrink local filenames.
+        path = PathTools.getBasename(path);
+    return path;
 };
 
 Backbox.prototype._generateLegalPath = function(path)
