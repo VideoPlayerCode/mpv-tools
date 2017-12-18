@@ -14,6 +14,12 @@
   Allows you to perform video rotation which perfectly cycles through all 360
   degrees without any glitches.
 
+* `[ JS ]` **[Leapfrog.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Leapfrog.js)**
+
+  Effortlessly jump through your playlist, with your own custom jump size and
+  direction. Excellent when queuing lots of images and using mpv as an image
+  viewer.
+
 * `[ Lua ] TOP!` **[multi-command-if.lua](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/multi-command-if.lua)**
 
   Very powerful conditional logic and multiple action engine for your
