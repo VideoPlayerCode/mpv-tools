@@ -18,7 +18,8 @@
 'use strict';
 
 (function() {
-    var playlistPos = mp.get_property_number('playlist-pos'),
+    var throttleTime = 0,
+        playlistPos = mp.get_property_number('playlist-pos'),
         playlistCount = mp.get_property_number('playlist-count');
     mp.observe_property('playlist-pos', 'number', function(name, value) {
         playlistPos = value;
@@ -30,11 +31,25 @@
     // Provide the bindable mpv command which performs the playlist jump.
     // * Bind this via input.conf: `ctrl+x script-message Leapfrog -10`.
     // - Jumps can be either positive (ie. `100`) or negative (ie. `-3`).
-    // - You can silence the on-screen message by adding the word "silent" after
-    //   the number, as follows: `ctrl+x script-message Leapfrog 5 silent`.
+    // - You can silence the on-screen message by adding the option "silent"
+    //   after the number: `ctrl+x script-message Leapfrog 5 silent`.
+    // - If you want to be able to hold down the key, you should bind it with
+    //   the "repeatable" flag and the "throttle" option, as follows:
+    //   `ctrl+x repeatable script-message Leapfrog 1 throttle`. The throttling
+    //   ensures playlist progression at a sane pace when the key is held down.
+    // - Lastly, you can combine multiple options by separating them with
+    //   commas, such as: `Leapfrog 5 throttle,silent`.
     mp.register_script_message('Leapfrog', function(offset, options) {
         if (!playlistCount)
             return; // Nothing in playlist.
+
+        options = options ? options.split(',') : [];
+        if (options.indexOf('throttle') !== -1) {
+            var now = mp.get_time_ms();
+            if (now - throttleTime < 200) // 0.2s
+                return;
+            throttleTime = now;
+        }
 
         offset = parseInt(offset, 10);
         if (isNaN(offset) || offset === 0) {
@@ -50,7 +65,7 @@
 
         mp.set_property('playlist-pos', newPosition);
 
-        if (options !== 'silent')
+        if (options.indexOf('silent') === -1)
             mp.osd_message(
                 'Jump: '+(offset > 0 ? '+' : '')+offset+
                     ' ('+(newPosition + 1)+' / '+playlistCount+')',
