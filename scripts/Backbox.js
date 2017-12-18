@@ -1,16 +1,18 @@
 /*
  * BACKBOX.JS
- * Description: Advanced, modular media browser and file manager for mpv.
- * Version: 1.0
- * Author: SteveJobzniak
- * URL: https://github.com/SteveJobzniak/mpv-tools
- * License: Apache License, Version 2.0
+ *
+ * Description: Advanced, modular media browser, file manager and playlist
+ *              manager for mpv.
+ * Version:     1.1.0
+ * Author:      SteveJobzniak
+ * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * License:     Apache License, Version 2.0
  */
 
 // Read the bottom of this file for configuration and script setup instructions.
 
 /* jshint -W097 */
-/* global mp, require */
+/* global mp, require, setTimeout, clearTimeout */
 
 'use strict';
 
@@ -74,9 +76,11 @@ var Backbox = function(options)
     // Initialize the navigation menu and its callbacks.
     this.currentPage = null;
     this.currentPageIdx = -1;
-    this.pageList = ['files', 'favorites'];
+    this.pageList = ['files', 'favorites', 'playlist'];
     this.lastPageSelection = {}; // Tracks last-used selection on each page.
     this.currentlyPlayingStr = '[Currently Playing]';
+    this.clearPlaylistStr = '[Clear Playlist]';
+    this.clearPlaylistId = -999;
     this.showHelpHint = typeof options.showHelpHint === 'boolean' ?
         options.showHelpHint : true;
     this.menu = new SelectionMenu({ // Throws if bindings are illegal.
@@ -94,6 +98,25 @@ var Backbox = function(options)
     this.menu.setUseTextColors(mp.get_property_bool('vo-configured'));
     mp.observe_property('vo-configured', 'bool', function(name, value) {
         self.menu.setUseTextColors(value);
+    });
+
+    // Detect when the playlist contents or its position changes, with slight
+    // throttling to avoid massive processing during rapid-fire events, such as
+    // when the playlist is full of invalid files that are blazed through.
+    // NOTE: This property changes when contents OR current file changes.
+    var playlistTimer = null;
+    mp.observe_property('playlist', 'native', function(name, value) {
+        if (playlistTimer !== null) {
+            clearTimeout(playlistTimer);
+            playlistTimer = null;
+        }
+        if (self.menu.isMenuActive() && self.currentPage === 'playlist')
+            playlistTimer = setTimeout(function() {
+                playlistTimer = null;
+                if (self.menu.isMenuActive() && self.currentPage === 'playlist')
+                    // We're refreshing page while it's active. Keep selection.
+                    self.navigatePlaylist(value, true);
+            }, 150);
     });
 
     // Register all of the favorite paths/files in this media browser instance.
@@ -123,6 +146,10 @@ Backbox.prototype.flipPage = function(forcePage)
         // (loading the "currentPage" data) and now swapping back to old page!
         if (this.menu.getMetadata().type === this.currentPage)
             this.lastPageSelection[this.currentPage] = this.menu.getSelectedItem();
+        break;
+    case 'playlist':
+        // We do NOT save position on the playlist page. Instead, we always
+        // select the currently active file every time we enter the page.
         break;
     }
 
@@ -180,42 +207,14 @@ Backbox.prototype._showError = function(err, durationSec)
 Backbox.prototype._registerCallbacks = function()
 {
     var browser = this;
-    // browser.menu.setCallbackMenuShow(function() {});
-    browser.menu.setCallbackMenuHide(function() {
-        browser.flipPage('none'); // Force-flip in case menu was closed via timeout.
-    });
-    browser.menu.setCallbackMenuLeft(function() {
-        if (browser.currentPage !== 'files')
-            return;
 
-        // Throttle navigation speed to avoid blazing backwards.
-        var newNavTime = mp.get_time_ms();
-        if (newNavTime - browser.lastNavTime < 200) // 0.2s
-            return;
-
-        // Navigate to parent folder, but no higher than drive root.
-        var parentPath = PathTools.getParentPath(browser.currentPath);
-
-        // Only reindex folder if path is new, otherwise just render.
-        if (parentPath.newPath !== browser.currentPath)
-            // NOTE: If parent dir is deleted/unreadable, this shows an error:
-            browser.navigateDir(
-                parentPath.newPath,
-                // Select the directory we've just left, for easy navigation.
-                parentPath.previousDir ? parentPath.previousDir+'/' : null
-            );
-        else
-            browser.menu.renderMenu();
-
-        // Update navigation throttling timestamp.
-        browser.lastNavTime = newNavTime;
-    });
     var processSelection = function() {
         var selection = browser.getSelection();
         if (!selection.targetPath)
             return null; // Abort since there is no selection.
 
-        var targetPath = selection.targetPath,
+        var targetType = null,
+            targetPath = selection.targetPath,
             selectEntry = null;
 
         switch (selection.menuPage) {
@@ -235,7 +234,12 @@ Backbox.prototype._registerCallbacks = function()
                 }
             }
             break;
+        case 'playlist':
+            targetType = 'playlist';
+            selectEntry = selection.item; // Filename of the playlist item.
+            break;
         default:
+            mp.msg.error('processSelection: Unknown menu page: '+selection.menuPage);
             return null; // Unknown page.
         }
 
@@ -245,23 +249,25 @@ Backbox.prototype._registerCallbacks = function()
         // before something in the directory was deleted or modified.
         // NOTE: The reason why there's no dedicated "refresh folder" action
         // is because it's easy to press "left + right" to re-open a dir.
-        var targetType = PathTools.getPathInfo(targetPath);
-        if (targetType === 'missing') {
-            mp.msg.error('Backbox: Unable to access "'+targetPath+'".');
-            browser._showError(
-                // Since it's missing, we'll have to guess the type. Only the
-                // files-page will be able to guess that things are files...
-                // The favorites-page assumes everything missing is a folder!
-                'Backbox: '+(selection.itemType === 'file' ? 'File' : 'Target')+
-                    ' is missing or unreadable.'+
-                    (selection.menuPage === 'files' ? ' Re-indexing directory...' : ''),
-                0.8
-            );
-            if (selection.menuPage === 'files') {
-                // NOTE: If the WHOLE dir is missing, this shows an error:
-                browser.navigateDir(browser.currentPath, null, true); // Force re-index.
+        if (!targetType) { // No other type assigned. So it's a disk-file.
+            targetType = PathTools.getPathInfo(targetPath);
+            if (targetType === 'missing') {
+                mp.msg.error('Backbox: Unable to access "'+targetPath+'".');
+                browser._showError(
+                    // Since it's missing, we'll have to guess type. Only the
+                    // files-page will be able to guess that things are files...
+                    // The favorites-page assumes everything missing = folder!
+                    'Backbox: '+(selection.itemType === 'file' ? 'File' : 'Target')+
+                        ' is missing or unreadable.'+
+                        (selection.menuPage === 'files' ? ' Re-indexing directory...' : ''),
+                    0.8
+                );
+                if (selection.menuPage === 'files') {
+                    // NOTE: If the WHOLE dir is missing, this shows an error:
+                    browser.navigateDir(browser.currentPath, null, true); // Force re-index.
+                }
+                return null;
             }
-            return null;
         }
 
         // The target exists and has been successfully analyzed.
@@ -271,6 +277,96 @@ Backbox.prototype._registerCallbacks = function()
             selectEntry: selectEntry
         };
     };
+
+    var playlistRemove = function(itemPos, showRemoval) {
+        // Remove the targeted playlist item (regardless of who/what added it).
+        var playlistCount = mp.get_property_number('playlist-count');
+        if (playlistCount >= 2) {
+            var removePos = itemPos < 0 ? playlistCount - 1 : itemPos,
+                removeItem = PlaylistManager.getPlaylist(removePos);
+            if (!removeItem)
+                return; // Safeguard against failure to fetch that offset.
+
+            // Refuse to remove currently playing item if last (would quit mpv).
+            if (removeItem.current && removePos === (playlistCount - 1)) {
+                browser.menu.showMessage('Cannot remove the final playlist item, because it is playing.');
+                return;
+            }
+
+            // NOTE: If this HAD been out-of-index, mpv ignores this command.
+            mp.commandv('playlist-remove', removePos);
+
+            // Determine whether the menu selection prefix should be cleared.
+            var c = browser.menu.useTextColors,
+                lastFilename = browser._shrinkFilename(removeItem.filename),
+                clearSelectionPrefix = false;
+            if (browser.currentPage !== 'playlist' && !PathTools.isWebURL(removeItem.filename)) {
+                var lastFullPath = PathTools.makePathAbsolute(removeItem.filename);
+                if (lastFullPath === browser.getSelection().targetPath)
+                    // Exact playlist path matches the selected file.
+                    clearSelectionPrefix = true;
+            }
+            if (showRemoval) {
+                // Show the basename and playlist-pos of the removed file.
+                browser.menu.showMessage(
+                    'Removed #'+(removePos + 1)+' from playlist'+
+                        (!lastFilename.length ? '.' : ':\n'+Ass.startSeq(c)+Ass.yellow(c)+
+                         '"'+Ass.esc(lastFilename, c)+'"'+Ass.stopSeq(c)),
+                    750, // Show msg for 0.75s to avoid mass-deletion accidents.
+                    clearSelectionPrefix // Remove menu prefix after de-queue?
+                );
+            } else if (clearSelectionPrefix) {
+                // Don't show message, but we should at least clear prefix.
+                browser.menu.renderMenu(null, 1); // 1 = Only redraw if open.
+            }
+        } else if (playlistCount === 1) { // Shows if 1 left, does nothing if 0.
+            // Don't remove the only remaining playlist item (would quit mpv).
+            browser.menu.showMessage('Cannot remove the only remaining playlist item.');
+        }
+    };
+
+    // browser.menu.setCallbackMenuShow(function() {});
+    browser.menu.setCallbackMenuHide(function() {
+        browser.flipPage('none'); // Force-flip in case menu was closed via timeout.
+    });
+    browser.menu.setCallbackMenuLeft(function() {
+        if (browser.currentPage !== 'files' && browser.currentPage !== 'playlist')
+            return;
+
+        // Throttle navigation speed to avoid blazing backwards when held down.
+        var newNavTime = mp.get_time_ms();
+        if (newNavTime - browser.lastNavTime < 200) // 0.2s
+            return;
+
+        switch (browser.currentPage) {
+        case 'files':
+            // Navigate to parent folder, but no higher than drive root.
+            var parentPath = PathTools.getParentPath(browser.currentPath);
+
+            // Only reindex folder if path is new, otherwise just render.
+            if (parentPath.newPath !== browser.currentPath)
+                // NOTE: If parent dir is deleted/unreadable, this shows an error:
+                browser.navigateDir(
+                    parentPath.newPath,
+                    // Select the directory we've just left, for easy navigation.
+                    parentPath.previousDir ? parentPath.previousDir+'/' : null
+                );
+            else
+                browser.menu.renderMenu();
+            break;
+        case 'playlist':
+            var selection = processSelection();
+            if (selection && selection.targetType === 'playlist' && selection.targetPath >= 1)
+                // We have a verified playlist index (selection). De-queue it.
+                playlistRemove(selection.targetPath - 1, false); // No msg.
+            break;
+        default:
+            mp.msg.error('Unknown menu page: '+browser.currentPage);
+        }
+
+        // Update navigation throttling timestamp.
+        browser.lastNavTime = newNavTime;
+    });
     browser.menu.setCallbackMenuRight(function() {
         var selection = processSelection();
         if (!selection)
@@ -303,6 +399,12 @@ Backbox.prototype._registerCallbacks = function()
             mp.commandv('loadfile', selection.targetPath, 'append-play');
             browser.menu.renderMenu('[added to playlist!]');
             break;
+        case 'playlist':
+            if (selection.targetPath >= 1) // Ensure target isn't a special ID.
+                // We have a verified playlist index (selection). Jump to it.
+                // NOTE: If this HAD been out-of-index, mpv ignores the command.
+                mp.set_property('playlist-pos-1', selection.targetPath);
+            break;
         default:
             mp.msg.error('Unknown selection type: '+selection.targetType);
         }
@@ -312,63 +414,47 @@ Backbox.prototype._registerCallbacks = function()
         if (!selection)
             return;
 
-        // We absolutely MUST place the player into "idle if there is no
-        // file to play" mode! Otherwise it will QUIT now if dir/file is empty!
-        mp.set_property('idle', 'yes');
-        // Replace whole playlist with selected file or folder (recursively).
-        // NOTE: Recursively loading a folder is a non-blocking function call
-        // but may freeze the player while mpv scans for files in large trees!
-        mp.commandv('loadfile', selection.targetPath, 'replace');
-        browser.menu.hideMenu();
+        switch (selection.targetType) {
+        case 'dir':
+        case 'file':
+            // We absolutely MUST place the player into "idle if there is no
+            // file to play" mode! Otherwise it QUITS if dir/file is empty/bad!
+            mp.set_property('idle', 'yes');
 
-        // Show feedback to tell the user what is being queued...
-        var c = browser.menu.useTextColors,
-            osdText = Ass.startSeq(c)+Ass.scale(90, c)+
+            // Replace whole playlist with selected file/folder (recursively).
+            // NOTE: Recursively loading folders is a non-blocking function call
+            // but may freeze the player while mpv scans files in large trees!
+            mp.commandv('loadfile', selection.targetPath, 'replace');
+            browser.menu.hideMenu();
+
+            // Show feedback to tell the user what is being queued...
+            var c = browser.menu.useTextColors,
+                osdText = Ass.startSeq(c)+Ass.scale(90, c)+
                 'Queueing media file'+(selection.targetType === 'dir' ? 's' : ''),
-            baseName = PathTools.getBasename(selection.targetPath); // Name of dir/file.
-        if (baseName)
-            osdText += (selection.targetType === 'dir' ? ' in' : '')+':\n'+
+                baseName = browser._shrinkFilename(selection.targetPath); // Name of dir/file.
+            if (baseName)
+                osdText += (selection.targetType === 'dir' ? ' in' : '')+':\n'+
                 Ass.scale(60, c)+Ass.yellow(c)+'"'+Ass.esc(baseName, c)+'"';
-        else
-            osdText += '...';
-        osdText += Ass.stopSeq(c);
-        mp.osd_message(osdText, 2); // Regular OSD message due to hiding menu.
+            else
+                osdText += '...';
+            osdText += Ass.stopSeq(c);
+            mp.osd_message(osdText, 2); // Use regular OSD due to hiding menu.
+            break;
+        case 'playlist':
+            if (selection.targetPath >= 1) // Ensure target isn't a special ID.
+                // We have a verified playlist index (selection). Jump to it.
+                // NOTE: If this HAD been out-of-index, mpv ignores the command.
+                mp.set_property('playlist-pos-1', selection.targetPath);
+            else if (selection.targetPath === browser.clearPlaylistId)
+                // This command clears the playlist, except the playing file.
+                mp.commandv('playlist-clear');
+            break;
+        default:
+            mp.msg.error('Unknown selection type: '+selection.targetType);
+        }
     });
     browser.menu.setCallbackMenuUndo(function() {
-        // Remove the last playlist item (regardless of who/what added it).
-        var playlistCount = mp.get_property_number('playlist-count');
-        if (playlistCount > 1) {
-            var lastItem = PlaylistManager.getPlaylist(-1);
-
-            // Refuse to remove the currently playing item (would quit mpv).
-            if (lastItem && lastItem.current) {
-                browser.menu.showMessage('Cannot remove the currently playing playlist item.');
-                return;
-            }
-
-            mp.commandv('playlist-remove', playlistCount - 1);
-
-            // Show the basename and playlist-pos of the file that was removed.
-            var c = browser.menu.useTextColors,
-                lastFilename = lastItem ? browser._shrinkFilename(lastItem.filename) : '',
-                clearSelectionPrefix = false;
-            if (lastItem && !PathTools.isWebURL(lastItem.filename)) {
-                var lastFullPath = PathTools.makePathAbsolute(lastItem.filename);
-                if (lastFullPath === browser.getSelection().targetPath)
-                    // Exact playlist path matches the selected file.
-                    clearSelectionPrefix = true;
-            }
-            browser.menu.showMessage(
-                'Removed #'+playlistCount+' from playlist'+
-                    (!lastFilename.length ? '.' : ':\n'+Ass.startSeq(c)+Ass.yellow(c)+
-                     '"'+Ass.esc(lastFilename, c)+'"'+Ass.stopSeq(c)),
-                1500, // Show msg for 1.5s to prevent accidental mass-deletions.
-                clearSelectionPrefix // Removes menu prefix of de-queued file.
-            );
-        } else {
-            // Don't remove the only remaining playlist item (would quit mpv).
-            browser.menu.showMessage('Cannot remove the only remaining playlist item.');
-        }
+        playlistRemove(-1, true); // Remove the last playlist item. Show msg.
     });
 };
 
@@ -450,8 +536,45 @@ Backbox.prototype.getSelection = function()
         selection.targetPath = selection.item !== this.currentlyPlayingStr ?
             PathTools.makePathAbsolute(selection.item) : selection.item;
         break;
+    case 'playlist':
+        var itemFilename = '',
+            itemIndex = null,
+            match = selectedItem.match(/^=?(\d+)=?: (.*)$/); // Parse selection.
+        if (match) {
+            // Validate real playlist index and ensure the item is in there.
+            // NOTE: Finds new idx if been moved by -2 or +2 in real playlist.
+            var playlist = mp.get_property_native('playlist');
+            if (playlist && playlist.length) {
+                var plFilename = match[2],
+                    plIndex = parseInt(match[1], 10) - 1, // 1-index to 0-index.
+                    testOffsets = [0, -1, 1, -2, 2];
+                for (var i = 0; i < testOffsets.length; ++i) {
+                    var testIdx = plIndex + testOffsets[i];
+                    if (testIdx < 0 || testIdx >= playlist.length)
+                        continue;
+
+                    // Verify via same filename shrinking as the playlist page.
+                    // NOTE: This ensures we've found the selected item even if
+                    // the user's playlist manager page is slightly stale.
+                    var thisName = this._shrinkFilename(playlist[testIdx].filename);
+                    if (thisName === plFilename) {
+                        // We have found the exact item the user had selected.
+                        itemFilename = thisName;
+                        itemIndex = testIdx + 1; // 0-index to 1-index.
+                        break;
+                    }
+                }
+            }
+        } else if (selectedItem === this.clearPlaylistStr) {
+            itemFilename = this.clearPlaylistStr;
+            itemIndex = this.clearPlaylistId; // Special, negative ID number.
+        }
+        selection.item = itemFilename; // Simplified name of the item.
+        selection.itemType = 'playlist';
+        selection.targetPath = itemIndex; // Verified, 1-indexed offset (or ID).
+        break;
     default:
-        mp.msg.error('Unknown menu page: '+selection.menuPage);
+        mp.msg.error('getSelection: Unknown menu page: '+selection.menuPage);
         selection.menuPage = null; // We can't parse selection for this page.
     }
 
@@ -483,6 +606,62 @@ Backbox.prototype.navigateFav = function(selectEntry)
         this.menu.setTitle((menuOptions.length === 0 ? '[empty] ' : '')+'Backbox Favorites');
         this.menu.setOptions(menuOptions, initialSelectionIdx);
     }
+
+    this.menu.renderMenu();
+};
+
+Backbox.prototype.navigatePlaylist = function(playlist, keepPosition)
+{
+    this.flipPage('playlist'); // Force flip to the correct page if not already.
+
+    // NOTE: The playlist page must be refreshed every time we're called, to
+    // ensure that it always has a fresh, up-to-date playback/list state.
+
+    // Read the current playlist property value if not provided to us.
+    playlist = playlist || mp.get_property_native('playlist');
+
+    var i, entryPath, entryIsPlaying, entryIndex, entryText,
+        extraMenuOptions = 0,
+        activeIndex = null,
+        menuOptions = [],
+        initialSelectionIdx = 0;
+
+    if (playlist && playlist.length >= 2) { // Only if 2+ items in playlist.
+        menuOptions.push(this.clearPlaylistStr);
+        ++extraMenuOptions;
+        ++initialSelectionIdx; // Start at 2nd item (after "clear playlist").
+    }
+
+    if (keepPosition && this.menu.getMetadata().type === 'playlist')
+        initialSelectionIdx = this.menu.selectionIdx; // Stay at same position.
+
+    if (playlist)
+        for (i = 0; i < playlist.length; ++i) {
+            entryPath = this._shrinkFilename(playlist[i].filename);
+            entryIsPlaying = playlist[i].current;
+            entryIndex = i + 1;
+            if (entryIsPlaying)
+                activeIndex = entryIndex;
+            entryText = (entryIsPlaying ? '='+entryIndex+'=' : entryIndex)+': '+entryPath;
+            menuOptions.push(entryText);
+            if (entryIsPlaying && !keepPosition) // Found the playing item?
+                initialSelectionIdx = menuOptions.length - 1;
+        }
+
+    // Select maximum possible entry if desired target is gone (such as the last
+    // entry being deleted while hovering over it (in "keep position" mode)).
+    if (initialSelectionIdx >= menuOptions.length)
+        initialSelectionIdx = menuOptions.length ? menuOptions.length - 1 : 0;
+
+    this.menu.getMetadata().type = 'playlist';
+    this.menu.setTitle(
+        '['+(
+            menuOptions.length <= extraMenuOptions ? 'empty' :
+                (activeIndex !== null ? activeIndex+'/' : 'x')+
+                (menuOptions.length - extraMenuOptions) // Don't count extras.
+        )+'] Playlist Manager'
+    );
+    this.menu.setOptions(menuOptions, initialSelectionIdx);
 
     this.menu.renderMenu();
 };
@@ -588,8 +767,11 @@ Backbox.prototype.switchMenu = function(forcePage)
         case 'files':
             this.navigateDir(this.currentPath, this.lastPageSelection.files);
             break;
+        case 'playlist':
+            this.navigatePlaylist(); // Selects the currently active file.
+            break;
         default:
-            mp.msg.error('Unknown menu page: '+this.currentPage);
+            mp.msg.error('switchMenu: Unknown menu page: '+this.currentPage);
         }
     }
 };
@@ -672,5 +854,8 @@ Backbox.prototype.switchMenu = function(forcePage)
     });
     mp.add_key_binding(null, 'Backbox_Favorites', function() {
         browser.switchMenu('favorites');
+    });
+    mp.add_key_binding(null, 'Backbox_Playlist', function() {
+        browser.switchMenu('playlist');
     });
 })();

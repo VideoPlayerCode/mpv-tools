@@ -7,7 +7,7 @@
 
 * `[ JS ] TOP!` **[Backbox.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Backbox.js)**
 
-  Advanced, modular media browser and file manager for mpv.
+  Advanced, modular media browser, file manager and playlist manager for mpv.
 
 * `[ Lua ]` **[cycle-video-rotate.lua](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/cycle-video-rotate.lua)**
 
