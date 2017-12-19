@@ -66,7 +66,9 @@
         var newPosition;
         switch (offset) {
         case 'random':
-            newPosition = Math.floor(Math.random() * playlistCount);
+            do {
+                newPosition = Math.floor(Math.random() * playlistCount);
+            } while(newPosition === playlistPos && playlistCount > 1);
             break;
         default:
             offset = parseInt(offset, 10);
