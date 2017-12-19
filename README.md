@@ -35,6 +35,13 @@
 
 Easily download all scripts as a zip file: [mpv-tools-master.zip](https://github.com/SteveJobzniak/mpv-tools/archive/master.zip).
 
+### Update Notifications
+
+To get update notifications, simply ensure that you have a GitHub account, and
+press the "Star" and "Watch" buttons at the top of this project page. You will
+then receive notifications (via email by default) whenever a new version is
+released.
+
 ### Requirements
 
 You need the [mpv.io](http://mpv.io) media player, built with Lua (`.lua`) and
