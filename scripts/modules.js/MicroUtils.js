@@ -110,6 +110,23 @@ Utils.isInt = function(value)
         (value | 0) === value;
 };
 
+Utils.shuffle = function(arr)
+{
+    var m = arr.length, tmp, i;
+
+    while (m) { // While items remain to shuffle...
+        // Pick a remaining element...
+        i = Math.floor(Math.random() * m--);
+
+        // And swap it with the current element.
+        tmp = arr[m];
+        arr[m] = arr[i];
+        arr[i] = tmp;
+    }
+
+    return arr;
+};
+
 Utils.dump = function(value)
 {
     mp.msg.error(JSON.stringify(value));
