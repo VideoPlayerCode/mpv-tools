@@ -17,8 +17,8 @@
 * `[ JS ] TOP!` **[Leapfrog.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Leapfrog.js)**
 
   Effortlessly jump through your playlist, with your own custom jump size and
-  direction. Excellent when queuing lots of images and using mpv as an image
-  viewer.
+  direction, including the ability to jump randomly. Excellent when queuing lots
+  of images and using mpv as an image viewer.
 
 * `[ Lua ] TOP!` **[multi-command-if.lua](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/multi-command-if.lua)**
 
