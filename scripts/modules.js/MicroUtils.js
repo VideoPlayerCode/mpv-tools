@@ -1,9 +1,10 @@
 /*
- * MICROUTILS.JS (MODULE)
- * Version: 1.0
- * Author: SteveJobzniak
- * URL: https://github.com/SteveJobzniak/mpv-tools
- * License: Apache License, Version 2.0
+ * MICROUTILS.US (MODULE)
+ *
+ * Version:     1.1.0
+ * Author:      SteveJobzniak
+ * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * License:     Apache License, Version 2.0
  */
 
 /* jshint -W097 */
@@ -99,6 +100,14 @@ Utils.quickSort_Run = function(arr, sortRef)
     }
 
     return arr;
+};
+
+Utils.isInt = function(value)
+{
+    // Verify that the input is an integer (whole number).
+    return (typeof value !== 'number' || isNaN(value)) ?
+        false :
+        (value | 0) === value;
 };
 
 Utils.dump = function(value)
