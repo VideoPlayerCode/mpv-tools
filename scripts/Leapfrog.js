@@ -5,7 +5,7 @@
  *              jump size and direction, including the ability to jump randomly.
  *              Excellent when queuing lots of images and using mpv as an image
  *              viewer.
- * Version:     1.0.0
+ * Version:     1.2.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
