@@ -5,7 +5,7 @@
  *              jump size and direction, including the ability to jump randomly.
  *              Excellent when queuing lots of images and using mpv as an image
  *              viewer.
- * Version:     1.4.0
+ * Version:     1.5.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -98,6 +98,14 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
         }
         msgPrefix = 'Random:';
         break;
+    case 'first':
+        newPosition = 0;
+        msgPrefix = 'First:';
+        break;
+    case 'last':
+        newPosition = this.playlistCount - 1;
+        msgPrefix = 'Last:';
+        break;
     default:
         offset = parseInt(offset, 10);
         if (isNaN(offset) || offset === 0) {
@@ -136,6 +144,8 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
     // Provide the bindable mpv command which performs the playlist jump.
     // * Bind this via input.conf: `ctrl+x script-message Leapfrog -10`.
     // - Jumps can be either positive (ie. `100`) or negative (ie. `-3`).
+    // - You can use the word `first` to jump directly to the first entry, or
+    //   `last` for the last playlist entry: `script-message Leapfrog first`.
     // - Use the word `random` to perform completely random jumps, as follows:
     //   `script-message Leapfrog random`.
     // - To undo your random jumps, use `script-message Leapfrog undo-random`.
