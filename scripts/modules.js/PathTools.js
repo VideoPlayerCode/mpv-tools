@@ -130,6 +130,15 @@ PathTools.getSubPath = function(path, file)
     return (PathTools._isUnix && path === '/' ? '/' : path+PathTools._pathSep)+file;
 };
 
+PathTools.getPathname = function(path)
+{
+    if (PathTools._pathSep === null)
+        PathTools._detectOS();
+    // If there is no path separator, we assume there is no path (empty string).
+    var filenameSep = path.lastIndexOf(PathTools._pathSep);
+    return filenameSep >= 0 ? path.substring(0, filenameSep) : '';
+};
+
 PathTools.getBasename = function(path)
 {
     if (PathTools._pathSep === null)
@@ -139,13 +148,12 @@ PathTools.getBasename = function(path)
     return filenameSep >= 0 ? path.substring(filenameSep + 1) : path;
 };
 
-PathTools.getPathname = function(path)
-{
-    if (PathTools._pathSep === null)
-        PathTools._detectOS();
-    // If there is no path separator, we assume there is no path (empty string).
-    var filenameSep = path.lastIndexOf(PathTools._pathSep);
-    return filenameSep >= 0 ? path.substring(0, filenameSep) : '';
+PathTools.getExtension = function(path, includeDotfiles, noLowerCase) {
+    var filename = PathTools.getBasename(path);
+    var match = includeDotfiles ?
+        filename.match(/\.([^.]+)$/) :
+        filename.match(/[^.]\.([^.]+)$/);
+    return match ? (noLowerCase ? match[1] : match[1].toLowerCase()) : null;
 };
 
 PathTools.isPathAbsolute = function(path)
