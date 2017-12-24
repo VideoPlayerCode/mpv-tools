@@ -1,9 +1,10 @@
 /*
  * SCRIPTCONFIG.JS (MODULE)
- * Version: 1.0
- * Author: SteveJobzniak
- * URL: https://github.com/SteveJobzniak/mpv-tools
- * License: Apache License, Version 2.0
+ *
+ * Version:     1.1.0
+ * Author:      SteveJobzniak
+ * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * License:     Apache License, Version 2.0
  */
 
 /* jshint -W097 */
@@ -76,9 +77,8 @@ var ScriptConfig = function(options, identifier)
                 val = line.substring(pos + 1);
                 if (this.options.hasOwnProperty(key)) {
                     convVal = typeConv(this.options[key], val);
-                    if (typeof convVal !== 'undefined') {
+                    if (typeof convVal !== 'undefined')
                         this.options[key] = convVal;
-                    }
                     else
                         mp.msg.error('"'+this.configFile+'": Unable to convert value "'+val+'" for key "'+key+'".');
                 }
@@ -107,9 +107,8 @@ var ScriptConfig = function(options, identifier)
             if (key.length && this.options.hasOwnProperty(key)) {
                 val = cmdOpts[rawOpt];
                 convVal = typeConv(this.options[key], val);
-                if (typeof convVal !== 'undefined') {
+                if (typeof convVal !== 'undefined')
                     this.options[key] = convVal;
-                }
                 else
                     mp.msg.error('script-opts: Unable to convert value "'+val+'" for key "'+key+'".');
             }
@@ -146,5 +145,20 @@ ScriptConfig.prototype.getMultiValue = function(key)
     }
     return result;
 };
+
+// Provide a polyfill as `mp.options.read_options()`, for alternative usage.
+// Read Lua docs for usage: https://github.com/mpv-player/mpv/blob/master/DOCS/man/lua.rst#mpoptions-functions
+if (!mp.options)
+    mp.options = {};
+if (!mp.options.read_options)
+    mp.options.read_options = function(table, identifier) {
+        if (!table)
+            throw 'read_options: Table parameter is missing.';
+        if (!identifier)
+            identifier = mp.get_script_name();
+        // NOTE: "table" will be modified by reference, just as the Lua version.
+        var config = new ScriptConfig(table, identifier);
+        return config.options; // This is the same object as "table".
+    };
 
 module.exports = ScriptConfig;
