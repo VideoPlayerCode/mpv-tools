@@ -1,20 +1,25 @@
 /*
- * SCRIPTCONFIG.JS (MODULE)
+ * OPTIONS.JS (MODULE)
  *
- * Version:     1.1.0
+ * Description: JavaScript implementation of mpv's Lua API's config file system,
+ *              via "mp.options.read_options()". See official Lua docs for help.
+ *              https://github.com/mpv-player/mpv/blob/master/DOCS/man/lua.rst#mpoptions-functions
+ * Version:     2.0.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
  */
 
 /* jshint -W097 */
-/* global mp, module, require */
+/* global mp, exports, require */
 
 'use strict';
 
 var ScriptConfig = function(options, identifier)
 {
-    this.options = options || {};
+    if (!options)
+        throw 'Options table parameter is missing.';
+    this.options = options;
     this.scriptName = typeof identifier === 'string' ? identifier : mp.get_script_name();
     this.configFile = null;
 
@@ -146,19 +151,12 @@ ScriptConfig.prototype.getMultiValue = function(key)
     return result;
 };
 
-// Provide a polyfill as `mp.options.read_options()`, for alternative usage.
-// Read Lua docs for usage: https://github.com/mpv-player/mpv/blob/master/DOCS/man/lua.rst#mpoptions-functions
-if (!mp.options)
-    mp.options = {};
-if (!mp.options.read_options)
-    mp.options.read_options = function(table, identifier) {
-        if (!table)
-            throw 'read_options: Table parameter is missing.';
-        if (!identifier)
-            identifier = mp.get_script_name();
-        // NOTE: "table" will be modified by reference, just as the Lua version.
-        var config = new ScriptConfig(table, identifier);
-        return config.options; // This is the same object as "table".
-    };
+// Class `advanced_options()`: Offers extended features such as multi-values.
+exports.advanced_options = ScriptConfig;
 
-module.exports = ScriptConfig;
+// Function `read_options()`: Behaves like Lua API (returns plain list of opts).
+exports.read_options = function(table, identifier) {
+    // NOTE: "table" will be modified by reference, just as the Lua version.
+    var config = new ScriptConfig(table, identifier);
+    return config.options; // This is the same object as "table".
+};
