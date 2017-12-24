@@ -3,7 +3,7 @@
  *
  * Description: Advanced, modular media browser, file manager and playlist
  *              manager for mpv.
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -16,7 +16,7 @@
 
 'use strict';
 
-var ScriptConfig = require('ScriptConfig'),
+var Options = require('Options'),
     Utils = require('MicroUtils'),
     Ass = require('AssFormat'),
     PathIndex = require('PathIndex'),
@@ -782,7 +782,7 @@ Backbox.prototype.switchMenu = function(forcePage)
     // - Via permanent file: `<mpv config dir>/script-settings/Backbox.conf`
     // - Command override: `mpv --script-opts=Backbox-favorites="{/path1}+{/path2}"`
     // - Or by editing this file directly (not recommended, makes your updates harder).
-    var userConfig = new ScriptConfig({
+    var userConfig = new Options.advanced_options({
         // How long to keep the menu open while you are idle.
         // * (float/int) Ex: `10` (ten seconds), `0` (to disable autoclose).
         auto_close: 5,
