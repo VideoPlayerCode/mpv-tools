@@ -3,7 +3,7 @@
  *
  * Description: Advanced, modular media browser, file manager and playlist
  *              manager for mpv.
- * Version:     1.1.1
+ * Version:     1.2.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -236,7 +236,7 @@ Backbox.prototype._registerCallbacks = function()
             break;
         case 'playlist':
             targetType = 'playlist';
-            selectEntry = selection.item; // Filename of the playlist item.
+            selectEntry = selection.item; // Filename/title of playlist item.
             break;
         default:
             mp.msg.error('processSelection: Unknown menu page: '+selection.menuPage);
@@ -298,7 +298,8 @@ Backbox.prototype._registerCallbacks = function()
 
             // Determine whether the menu selection prefix should be cleared.
             var c = browser.menu.useTextColors,
-                lastFilename = browser._shrinkFilename(removeItem.filename),
+                removedTitle = removeItem.title ? removeItem.title :
+                    browser._shrinkFilename(removeItem.filename),
                 clearSelectionPrefix = false;
             if (browser.currentPage !== 'playlist' && !PathTools.isWebURL(removeItem.filename)) {
                 var lastFullPath = PathTools.makePathAbsolute(removeItem.filename);
@@ -310,8 +311,8 @@ Backbox.prototype._registerCallbacks = function()
                 // Show the basename and playlist-pos of the removed file.
                 browser.menu.showMessage(
                     'Removed #'+(removePos + 1)+' from playlist'+
-                        (!lastFilename.length ? '.' : ':\n'+Ass.startSeq(c)+Ass.yellow(c)+
-                         '"'+Ass.esc(lastFilename, c)+'"'+Ass.stopSeq(c)),
+                        (!removedTitle.length ? '.' : ':\n'+Ass.startSeq(c)+Ass.yellow(c)+
+                         '"'+Ass.esc(removedTitle, c)+'"'+Ass.stopSeq(c)),
                     750, // Show msg for 0.75s to avoid mass-deletion accidents.
                     clearSelectionPrefix // Remove menu prefix after de-queue?
                 );
@@ -537,7 +538,7 @@ Backbox.prototype.getSelection = function()
             PathTools.makePathAbsolute(selection.item) : selection.item;
         break;
     case 'playlist':
-        var itemFilename = '',
+        var itemTitle = '',
             itemIndex = null,
             match = selectedItem.match(/^=?(\d+)=?: (.*)$/); // Parse selection.
         if (match) {
@@ -545,7 +546,7 @@ Backbox.prototype.getSelection = function()
             // NOTE: Finds new idx if been moved by -2 or +2 in real playlist.
             var playlist = mp.get_property_native('playlist');
             if (playlist && playlist.length) {
-                var plFilename = match[2],
+                var plTitle = match[2],
                     plIndex = parseInt(match[1], 10) - 1, // 1-index to 0-index.
                     testOffsets = [0, -1, 1, -2, 2];
                 for (var i = 0; i < testOffsets.length; ++i) {
@@ -553,23 +554,24 @@ Backbox.prototype.getSelection = function()
                     if (testIdx < 0 || testIdx >= playlist.length)
                         continue;
 
-                    // Verify via same filename shrinking as the playlist page.
+                    // Verify via same title/filename-shrink as playlist page.
                     // NOTE: This ensures we've found the selected item even if
                     // the user's playlist manager page is slightly stale.
-                    var thisName = this._shrinkFilename(playlist[testIdx].filename);
-                    if (thisName === plFilename) {
+                    var thisName = playlist[testIdx].title ? playlist[testIdx].title :
+                        this._shrinkFilename(playlist[testIdx].filename);
+                    if (thisName === plTitle) {
                         // We have found the exact item the user had selected.
-                        itemFilename = thisName;
+                        itemTitle = thisName;
                         itemIndex = testIdx + 1; // 0-index to 1-index.
                         break;
                     }
                 }
             }
         } else if (selectedItem === this.clearPlaylistStr) {
-            itemFilename = this.clearPlaylistStr;
+            itemTitle = this.clearPlaylistStr;
             itemIndex = this.clearPlaylistId; // Special, negative ID number.
         }
-        selection.item = itemFilename; // Simplified name of the item.
+        selection.item = itemTitle; // Simplified title/filename of the item.
         selection.itemType = 'playlist';
         selection.targetPath = itemIndex; // Verified, 1-indexed offset (or ID).
         break;
@@ -637,7 +639,8 @@ Backbox.prototype.navigatePlaylist = function(playlist, keepPosition)
 
     if (playlist)
         for (i = 0; i < playlist.length; ++i) {
-            entryPath = this._shrinkFilename(playlist[i].filename);
+            entryPath = playlist[i].title ? playlist[i].title :
+                this._shrinkFilename(playlist[i].filename);
             entryIsPlaying = playlist[i].current;
             entryIndex = i + 1;
             if (entryIsPlaying)
