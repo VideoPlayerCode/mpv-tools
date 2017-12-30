@@ -1,9 +1,10 @@
 /*
  * ASSFORMAT.JS (MODULE)
- * Version: 1.0
- * Author: SteveJobzniak
- * URL: https://github.com/SteveJobzniak/mpv-tools
- * License: Apache License, Version 2.0
+ *
+ * Version:     1.1.0
+ * Author:      SteveJobzniak
+ * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * License:     Apache License, Version 2.0
  */
 
 /* jshint -W097 */
@@ -40,9 +41,19 @@ Ass.esc = function(str, escape)
     return str.replace(/\\/g, '\\\u2060').replace(/\{/g, '\\{');
 };
 
+Ass.size = function(fontSize, output)
+{
+    return output === false ? '' : '{\\fs'+fontSize+'}';
+};
+
 Ass.scale = function(scalePercent, output)
 {
     return output === false ? '' : '{\\fscx'+scalePercent+'\\fscy'+scalePercent+'}';
+};
+
+Ass.alpha = function(transparencyHex, output)
+{
+    return output === false ? '' : '{\\alpha&H'+transparencyHex+'&}'; // 00-FF.
 };
 
 Ass.color = function(rgbHex, output)
