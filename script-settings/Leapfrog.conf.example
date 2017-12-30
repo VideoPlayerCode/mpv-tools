@@ -1,0 +1,4 @@
+# Tells Leapfrog to use a small fontsize and adds some transparency.
+# Read the Leapfrog.js code for more details about these options.
+font_size=14
+font_alpha=30
