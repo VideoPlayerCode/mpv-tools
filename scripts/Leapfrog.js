@@ -5,7 +5,7 @@
  *              jump size and direction, including the ability to jump randomly.
  *              Excellent when queuing lots of images and using mpv as an image
  *              viewer.
- * Version:     1.5.0
+ * Version:     1.6.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -18,25 +18,31 @@
 
 'use strict';
 
-var Utils = require('MicroUtils'),
+var Options = require('Options'),
+    Utils = require('MicroUtils'),
+    Ass = require('AssFormat'),
     Stack = require('Stack'),
     RandomCycle = require('RandomCycle');
 
-var Leapfrog = function()
+var Leapfrog = function(globalOpts)
 {
+    this.fontSize = globalOpts.fontSize;
+    this.fontAlpha = globalOpts.fontAlpha;
     this.throttleTime = 0;
     this.history = new Stack(200);
     this.randomOrder = {
         rebuild: true,
         cycle: new RandomCycle()
     };
-    this.playlistPos = mp.get_property_number('playlist-pos');
-    this.playlistCount = mp.get_property_number('playlist-count');
 
     var self = this;
+
+    this.playlistPos = mp.get_property_number('playlist-pos');
     mp.observe_property('playlist-pos', 'number', function(name, value) {
         self.playlistPos = value;
     });
+
+    this.playlistCount = mp.get_property_number('playlist-count');
     mp.observe_property('playlist-count', 'number', function(name, value) {
         self.playlistCount = value;
         // New count means new/changed playlist. Clear unreliable history.
@@ -48,6 +54,25 @@ var Leapfrog = function()
         // playlist modification always begins a new randomly ordered sequence.
         self.randomOrder.rebuild = true;
     });
+
+    // Only use menu text colors while mpv is rendering in GUI mode (non-CLI).
+    this.useTextColors = mp.get_property_bool('vo-configured');
+    mp.observe_property('vo-configured', 'bool', function(name, value) {
+        self.useTextColors = value;
+    });
+};
+
+Leapfrog.prototype._formatMsg = function(msg, useTextColors)
+{
+    if (useTextColors === false)
+        return msg;
+    var out = Ass.startSeq();
+    if (this.fontSize > 0)
+        out += Ass.size(this.fontSize);
+    if (this.fontAlpha !== '00')
+        out += Ass.alpha(this.fontAlpha);
+    out += Ass.esc(msg)+Ass.stopSeq();
+    return out;
 };
 
 Leapfrog.prototype.jump = function(offset, rawOptions)
@@ -72,13 +97,14 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
     }
 
     // Calculate new playlist position.
-    var newPosition, msgPrefix, historyEntry;
+    var newPosition, msgPrefix, historyEntry,
+        c = this.useTextColors;
     switch (offset) {
     case 'undo-random':
         var previous = this.history.pop();
         if (typeof previous !== 'object' || typeof previous.pos === 'undefined') {
             if (!options.silent && !options.silenterr)
-                mp.osd_message('Undo: No history.');
+                mp.osd_message(this._formatMsg('Undo: No history.', c));
             return;
         }
         newPosition = previous.pos;
@@ -111,7 +137,7 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
         if (isNaN(offset) || offset === 0) {
             mp.msg.error('Leapfrog: Invalid offset number.');
             if (!options.silent && !options.silenterr)
-                mp.osd_message('Jump: Invalid offset number.');
+                mp.osd_message(this._formatMsg('Jump: Invalid offset number.', c));
             return;
         }
 
@@ -135,12 +161,30 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
     // Display on-screen feedback.
     if (!options.silent)
         mp.osd_message(
-            msgPrefix+' ('+(newPosition + 1)+' / '+this.playlistCount+')',
+            this._formatMsg(
+                msgPrefix+' ('+(newPosition + 1)+' / '+this.playlistCount+')',
+                c
+            ),
             1.5
         );
 };
 
 (function() {
+    // Read user configuration (uses defaults for any unconfigured options).
+    // * You can override these values via the configuration system, as follows:
+    // - Via permanent file: `<mpv config dir>/script-settings/Leapfrog.conf`
+    // - Command override: `mpv --script-opts=Leapfrog-font_size=16`
+    // - Or by editing this file directly (not recommended, makes your updates harder).
+    var userConfig = new Options.advanced_options({
+        // What font size to use for the Leapfrog status messages.
+        // * NOTE: Final size can vary in non-fullscreen due to mpv's scaling.
+        // * (int) Ex: `-1` (use same size as regular OSD), `16` (size 16).
+        font_size: -1,
+        // How transparent the status text should be.
+        // * (hex string) Ex: `00` (fully visible) to `FF` (fully transparent).
+        font_alpha: '00'
+    });
+
     // Provide the bindable mpv command which performs the playlist jump.
     // * Bind this via input.conf: `ctrl+x script-message Leapfrog -10`.
     // - Jumps can be either positive (ie. `100`) or negative (ie. `-3`).
@@ -188,7 +232,10 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
     //   pressing "random" again. Doing so will cause your "random" request to
     //   travel the sequence starting at that playlist entry's position instead.
     //   Try it out and you'll get the hang of the technique! ;-)
-    var frog = new Leapfrog();
+    var frog = new Leapfrog({
+        fontSize: userConfig.getValue('font_size'),
+        fontAlpha: userConfig.getValue('font_alpha')
+    });
     mp.register_script_message('Leapfrog', function(offset, rawOptions) {
         frog.jump(offset, rawOptions);
     });
