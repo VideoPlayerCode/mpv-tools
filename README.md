@@ -5,7 +5,7 @@
   Intelligently switches mpv's "keep-open" behavior based on whether you are
   running in video-mode or audio-only mode.
 
-* `[ JS ] TOP!` **[Backbox.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Backbox.js)**
+* `[ JS ] TOP!` **[Blackbox.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Blackbox.js)**
 
   Advanced, modular media browser, file manager and playlist manager for mpv.
 
@@ -38,9 +38,9 @@ Easily download all scripts as a zip file: [mpv-tools-master.zip](https://github
 ### Update Notifications
 
 To get update notifications, simply ensure that you have a GitHub account, and
-press the "Star" and "Watch" buttons at the top of this project page. You will
-then receive notifications (via email by default) whenever a new version is
-released.
+then press the "Star" and (most importantly) "Watch" buttons at the top of this
+project page. You will then receive notifications (via email by default)
+whenever a new version is released.
 
 ### Requirements
 

@@ -1,5 +1,5 @@
 /*
- * BACKBOX.JS
+ * BLACKBOX.JS
  *
  * Description: Advanced, modular media browser, file manager and playlist
  *              manager for mpv.
@@ -24,7 +24,7 @@ var Options = require('Options'),
     PlaylistManager = require('PlaylistManager'),
     SelectionMenu = require('SelectionMenu');
 
-var Backbox = function(options)
+var Blackbox = function(options)
 {
     options = options || {};
 
@@ -127,12 +127,12 @@ var Backbox = function(options)
                 this.addFavorite(favOpt[i]); // Throws.
             }
         } catch (e) { // Treat as non-fatal.
-            this._showError('Backbox: Invalid favorites option value: '+e+'.', 3);
+            this._showError('Blackbox: Invalid favorites option value: '+e+'.', 3);
         }
     }
 };
 
-Backbox.prototype.flipPage = function(forcePage)
+Blackbox.prototype.flipPage = function(forcePage)
 {
     if (forcePage === this.currentPage || (forcePage === 'none' && this.currentPage === null))
         return; // No-op: We're already marked as being on that exact page!
@@ -175,7 +175,7 @@ Backbox.prototype.flipPage = function(forcePage)
     }
 };
 
-Backbox.prototype.addFavorite = function(path)
+Blackbox.prototype.addFavorite = function(path)
 {
     // Do some basic validation, but don't check for duplicates or path
     // existence (we could verify that by trying to read the path, but people
@@ -190,7 +190,7 @@ Backbox.prototype.addFavorite = function(path)
     this.favoritePaths.push(path);
 };
 
-Backbox.prototype._showError = function(err, durationSec)
+Blackbox.prototype._showError = function(err, durationSec)
 {
     err = typeof err === 'string' ? err : '_showError: No error string.';
     durationSec = typeof durationSec === 'number' ? durationSec : 2;
@@ -204,7 +204,7 @@ Backbox.prototype._showError = function(err, durationSec)
         mp.osd_message(err, durationSec);
 };
 
-Backbox.prototype._registerCallbacks = function()
+Blackbox.prototype._registerCallbacks = function()
 {
     var browser = this;
 
@@ -252,12 +252,12 @@ Backbox.prototype._registerCallbacks = function()
         if (!targetType) { // No other type assigned. So it's a disk-file.
             targetType = PathTools.getPathInfo(targetPath);
             if (targetType === 'missing') {
-                mp.msg.error('Backbox: Unable to access "'+targetPath+'".');
+                mp.msg.error('Blackbox: Unable to access "'+targetPath+'".');
                 browser._showError(
                     // Since it's missing, we'll have to guess type. Only the
                     // files-page will be able to guess that things are files...
                     // The favorites-page assumes everything missing = folder!
-                    'Backbox: '+(selection.itemType === 'file' ? 'File' : 'Target')+
+                    'Blackbox: '+(selection.itemType === 'file' ? 'File' : 'Target')+
                         ' is missing or unreadable.'+
                         (selection.menuPage === 'files' ? ' Re-indexing directory...' : ''),
                     0.8
@@ -459,14 +459,14 @@ Backbox.prototype._registerCallbacks = function()
     });
 };
 
-Backbox.prototype._shrinkFilename = function(path)
+Blackbox.prototype._shrinkFilename = function(path)
 {
     if (!PathTools.isWebURL(path)) // Shrink local filenames.
         path = PathTools.getBasename(path);
     return path;
 };
 
-Backbox.prototype._generateLegalPath = function(path)
+Blackbox.prototype._generateLegalPath = function(path)
 {
     var overrideSelect = false;
     if (typeof path !== 'string') // Re-use current if no new path provided.
@@ -502,7 +502,7 @@ Backbox.prototype._generateLegalPath = function(path)
     };
 };
 
-Backbox.prototype.getSelection = function()
+Blackbox.prototype.getSelection = function()
 {
     var selection = {
         menuPage: this.currentPage,
@@ -583,7 +583,7 @@ Backbox.prototype.getSelection = function()
     return selection;
 };
 
-Backbox.prototype.navigateFav = function(selectEntry)
+Blackbox.prototype.navigateFav = function(selectEntry)
 {
     this.flipPage('favorites'); // Force flip to save old state.
 
@@ -605,14 +605,14 @@ Backbox.prototype.navigateFav = function(selectEntry)
         }
 
         this.menu.getMetadata().type = 'favorites';
-        this.menu.setTitle((menuOptions.length === 0 ? '[empty] ' : '')+'Backbox Favorites');
+        this.menu.setTitle((menuOptions.length === 0 ? '[empty] ' : '')+'Blackbox Favorites');
         this.menu.setOptions(menuOptions, initialSelectionIdx);
     }
 
     this.menu.renderMenu();
 };
 
-Backbox.prototype.navigatePlaylist = function(playlist, keepPosition)
+Blackbox.prototype.navigatePlaylist = function(playlist, keepPosition)
 {
     this.flipPage('playlist'); // Force flip to the correct page if not already.
 
@@ -669,7 +669,7 @@ Backbox.prototype.navigatePlaylist = function(playlist, keepPosition)
     this.menu.renderMenu();
 };
 
-Backbox.prototype.navigateDir = function(path, selectEntry, forceRefresh)
+Blackbox.prototype.navigateDir = function(path, selectEntry, forceRefresh)
 {
     var oldPage = this.currentPage;
     this.flipPage('files'); // Force flip to save old state.
@@ -737,11 +737,11 @@ Backbox.prototype.navigateDir = function(path, selectEntry, forceRefresh)
         // Restore the previous page (if different from current).
         // NOTE: If we're already in the filebrowser, path stays where it was!
         this.flipPage(oldPage);
-        this._showError('Backbox: Unable to access directory "'+path+'".', 0.8);
+        this._showError('Blackbox: Unable to access directory "'+path+'".', 0.8);
     }
 };
 
-Backbox.prototype.switchMenu = function(forcePage)
+Blackbox.prototype.switchMenu = function(forcePage)
 {
     if (typeof forcePage === 'string') {
         // We're being asked to go to a specific page. Toggle if already there.
@@ -782,8 +782,8 @@ Backbox.prototype.switchMenu = function(forcePage)
 (function() {
     // Read user configuration (uses defaults for any unconfigured options).
     // * You can override these values via the configuration system, as follows:
-    // - Via permanent file: `<mpv config dir>/script-settings/Backbox.conf`
-    // - Command override: `mpv --script-opts=Backbox-favorites="{/path1}+{/path2}"`
+    // - Via permanent file: `<mpv config dir>/script-settings/Blackbox.conf`
+    // - Command override: `mpv --script-opts=Blackbox-favorites="{/path1}+{/path2}"`
     // - Or by editing this file directly (not recommended, makes your updates harder).
     var userConfig = new Options.advanced_options({
         // How long to keep the menu open while you are idle.
@@ -800,7 +800,7 @@ Backbox.prototype.switchMenu = function(forcePage)
         help_hint: true,
         // List of paths (and/or files) to show in the favorites menu, each delimited by `{}` and plus signs.
         // * (string) Ex: `{/home/foo}+{/mnt}+{/media}+{/bunny.avi}` to add three paths and a file.
-        // - To get to your favorites, press the "Backbox" hotkey twice.
+        // - To get to your favorites, press the "Blackbox" hotkey twice.
         favorites: '',
         // Keybindings. You can bind any action to multiple keys simultaneously.
         // * (string) Ex: `{up}`, `{up}+{shift+w}` or `{x}+{+}` (binds to "x" and the plus key).
@@ -819,7 +819,7 @@ Backbox.prototype.switchMenu = function(forcePage)
 
     // Create and initialize the media browser instance.
     try {
-        var browser = new Backbox({ // Throws.
+        var browser = new Blackbox({ // Throws.
             autoCloseDelay: userConfig.getValue('auto_close'),
             maxLines: userConfig.getValue('max_lines'),
             menuFontSize: userConfig.getValue('font_size'),
@@ -839,26 +839,26 @@ Backbox.prototype.switchMenu = function(forcePage)
             }
         });
     } catch (e) {
-        mp.msg.error('Backbox: '+e+'.');
-        mp.osd_message('Backbox: '+e+'.', 3);
+        mp.msg.error('Blackbox: '+e+'.');
+        mp.osd_message('Blackbox: '+e+'.', 3);
         throw e; // Critical init error. Stop script execution.
     }
 
     // Provide the bindable mpv command which opens/cycles through the menu.
-    // * Bind this via input.conf: `ctrl+b script-binding Backbox`.
+    // * Bind this via input.conf: `ctrl+b script-binding Blackbox`.
     // - To get to your favorites (if you've added some), press this key twice.
-    mp.add_key_binding(null, 'Backbox', function() {
+    mp.add_key_binding(null, 'Blackbox', function() {
         browser.switchMenu();
     });
 
     // Provide bindings that go directly to (or toggle off) each specific page.
-    mp.add_key_binding(null, 'Backbox_Files', function() {
+    mp.add_key_binding(null, 'Blackbox_Files', function() {
         browser.switchMenu('files');
     });
-    mp.add_key_binding(null, 'Backbox_Favorites', function() {
+    mp.add_key_binding(null, 'Blackbox_Favorites', function() {
         browser.switchMenu('favorites');
     });
-    mp.add_key_binding(null, 'Backbox_Playlist', function() {
+    mp.add_key_binding(null, 'Blackbox_Playlist', function() {
         browser.switchMenu('playlist');
     });
 })();

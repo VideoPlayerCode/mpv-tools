@@ -10,7 +10,7 @@ favorites={/home/example/Movies}+{/home/example/Downloads}+{/home/example/Docume
 # Key rebindings.
 #
 # Recommendation:
-#  Bind the main "Backbox" menu command (via input.conf)
+#  Bind the main "Blackbox" menu command (via input.conf)
 #  to "z" and use the left-hand navigation below.
 keys_menu_up={up}+{w}
 keys_menu_down={down}+{s}
