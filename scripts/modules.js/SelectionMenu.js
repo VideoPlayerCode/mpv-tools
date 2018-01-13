@@ -1,9 +1,10 @@
 /*
  * SELECTIONMENU.JS (MODULE)
- * Version: 1.0
- * Author: SteveJobzniak
- * URL: https://github.com/SteveJobzniak/mpv-tools
- * License: Apache License, Version 2.0
+ *
+ * Version:     1.1.0
+ * Author:      SteveJobzniak
+ * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * License:     Apache License, Version 2.0
  */
 
 /* jshint -W097 */
@@ -396,7 +397,9 @@ SelectionMenu.prototype.renderMenu = function(selectionPrefix, renderMode)
             startIdx = 0;
 
         // Format and add all output lines.
+        var opt;
         for (var i = startIdx; i <= endIdx; ++i) {
+            opt = this.options[i];
             if (i === this.selectionIdx)
                 // NOTE: Prefix stays on screen until cursor-move or re-render.
                 finalString += Ass.yellow(c)+'> '+(typeof selectionPrefix === 'string' ?
@@ -404,7 +407,10 @@ SelectionMenu.prototype.renderMenu = function(selectionPrefix, renderMode)
             finalString += (
                 i === startIdx && startIdx > 0 ? '...' :
                     (
-                        i === endIdx && endIdx < maxIdx ? '...' : Ass.esc(this.options[i], c)
+                        i === endIdx && endIdx < maxIdx ? '...' : Ass.esc(
+                            typeof opt === 'object' ? opt.menuText : opt,
+                            c
+                        )
                     )
             );
             if (i === this.selectionIdx)
