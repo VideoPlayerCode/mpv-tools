@@ -4,7 +4,7 @@
  * Description: JavaScript implementation of mpv's Lua API's config file system,
  *              via "mp.options.read_options()". See official Lua docs for help.
  *              https://github.com/mpv-player/mpv/blob/master/DOCS/man/lua.rst#mpoptions-functions
- * Version:     2.0.0
+ * Version:     2.1.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -27,6 +27,12 @@ var ScriptConfig = function(options, identifier)
     var typeConv = function(destTypeVal, val)
     {
         switch (typeof destTypeVal) {
+        case 'object':
+            if (!Array.isArray(destTypeVal))
+                val = undefined; // Unknown "object" target variable.
+            else if (typeof val !== 'string')
+                val = String(val); // Target is array, so use string values.
+            break;
         case 'string':
             if (typeof val !== 'string')
                 val = String(val);
@@ -65,7 +71,7 @@ var ScriptConfig = function(options, identifier)
     }
 
     // Read and parse configuration if found.
-    var i, len, pos, key, val, convVal;
+    var i, len, pos, key, val, isArrayVal, convVal;
     if (this.configFile && this.configFile.length) {
         try {
             var line, configLines = mp.utils.read_file(this.configFile).split(/[\r\n]+/);
@@ -80,10 +86,23 @@ var ScriptConfig = function(options, identifier)
                 }
                 key = line.substring(0, pos);
                 val = line.substring(pos + 1);
+                isArrayVal = false;
+                if ('[]' === line.substring(pos - 2, pos)) {
+                    key = key.substring(0, key.length - 2);
+                    isArrayVal = true;
+                }
                 if (this.options.hasOwnProperty(key)) {
                     convVal = typeConv(this.options[key], val);
-                    if (typeof convVal !== 'undefined')
-                        this.options[key] = convVal;
+                    if (typeof convVal !== 'undefined') {
+                        if (Array.isArray(this.options[key])) {
+                            if (isArrayVal)
+                                this.options[key].push(convVal);
+                            else
+                                mp.msg.error('"'+this.configFile+'": Ignoring non-array value for array-based option key "'+key+'".');
+                        }
+                        else
+                            this.options[key] = convVal;
+                    }
                     else
                         mp.msg.error('"'+this.configFile+'": Unable to convert value "'+val+'" for key "'+key+'".');
                 }
@@ -100,7 +119,7 @@ var ScriptConfig = function(options, identifier)
     // Parse command-line options.
     if (this.scriptName && this.scriptName.length) {
         var cmdOpts = mp.get_property_native('options/script-opts'), rawOpt,
-            prefix = this.scriptName+'-';
+            prefix = this.scriptName+'-', keyLen;
         len = prefix.length;
         for (rawOpt in cmdOpts) {
             if (!cmdOpts.hasOwnProperty(rawOpt))
@@ -109,11 +128,25 @@ var ScriptConfig = function(options, identifier)
             if (pos !== 0)
                 continue;
             key = rawOpt.substring(len);
+            keyLen = key.length;
+            isArrayVal = false;
+            if ('[]' === key.substring(keyLen - 2)) {
+                key = key.substring(0, keyLen - 2);
+                isArrayVal = true;
+            }
             if (key.length && this.options.hasOwnProperty(key)) {
                 val = cmdOpts[rawOpt];
                 convVal = typeConv(this.options[key], val);
-                if (typeof convVal !== 'undefined')
-                    this.options[key] = convVal;
+                if (typeof convVal !== 'undefined') {
+                    if (Array.isArray(this.options[key])) {
+                        if (isArrayVal)
+                            this.options[key].push(convVal);
+                        else
+                            mp.msg.error('script-opts: Ignoring non-array value for array-based option key "'+key+'".');
+                    }
+                    else
+                        this.options[key] = convVal;
+                }
                 else
                     mp.msg.error('script-opts: Unable to convert value "'+val+'" for key "'+key+'".');
             }
