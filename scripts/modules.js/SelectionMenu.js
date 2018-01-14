@@ -1,7 +1,7 @@
 /*
  * SELECTIONMENU.JS (MODULE)
  *
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -33,6 +33,12 @@ var SelectionMenu = function(settings)
     this.cbMenuUndo = typeof settings.cbMenuUndo === 'function' ? settings.cbMenuUndo : null;
     this.maxLines = typeof settings.maxLines === 'number' &&
         settings.maxLines >= 3 ? Math.floor(settings.maxLines) : 10;
+    this.menuFontAlpha = Ass.convertPercentToHex( // Throws if invalid input.
+        (typeof settings.menuFontAlpha === 'number' &&
+         settings.menuFontAlpha >= 0 && settings.menuFontAlpha <= 1 ?
+         settings.menuFontAlpha : 1),
+        true // Invert input range so "1.0" is visible and "0.0" is invisible.
+    );
     this.menuFontSize = typeof settings.menuFontSize === 'number' &&
         settings.menuFontSize >= 1 ? Math.floor(settings.menuFontSize) : 40;
     this.originalFontSize = null;
@@ -292,7 +298,7 @@ SelectionMenu.prototype._menuAction = function(action)
         var entry, entryTitle, allKeys,
             c = this.useTextColors,
             helpLines = 0,
-            helpString = Ass.startSeq(c),
+            helpString = Ass.startSeq(c)+Ass.alpha(this.menuFontAlpha, c),
             bindings = this.keyBindings;
         for (entry in bindings) {
             if (!bindings.hasOwnProperty(entry))
@@ -374,8 +380,9 @@ SelectionMenu.prototype.renderMenu = function(selectionPrefix, renderMode)
         finalString;
 
     // Title.
-    finalString = Ass.startSeq(c)+Ass.gray(c)+Ass.scale(75, c)+
-        Ass.esc(this.title, c)+':'+Ass.scale(100, c)+Ass.white(c)+'\n\n';
+    finalString = Ass.startSeq(c)+Ass.alpha(this.menuFontAlpha, c)+
+        Ass.gray(c)+Ass.scale(75, c)+Ass.esc(this.title, c)+':'+
+        Ass.scale(100, c)+Ass.white(c)+'\n\n';
 
     // Options.
     if (this.options.length > 0) {
