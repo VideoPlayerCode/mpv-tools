@@ -1,7 +1,7 @@
 /*
  * SELECTIONMENU.JS (MODULE)
  *
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -290,7 +290,7 @@ SelectionMenu.prototype._menuAction = function(action)
             // We don't know what the callback will do, and it may be slow, so
             // we'll disable the menu's auto-close timeout while it runs.
             this._disableAutoCloseTimeout(); // Soft-disable.
-            this[cbName]();
+            this[cbName](action);
         }
         break;
     case 'Menu-Help':
@@ -474,7 +474,7 @@ SelectionMenu.prototype._showMenu = function()
         // Run "menu show" callback if registered.
         if (typeof this.cbMenuShow === 'function') {
             this._disableAutoCloseTimeout(); // Soft-disable while CB runs.
-            this.cbMenuShow();
+            this.cbMenuShow('Menu-Show');
         }
 
         // Force an update/unlock of the activity timeout when menu opens.
@@ -501,7 +501,7 @@ SelectionMenu.prototype.hideMenu = function()
 
     // Run "menu hide" callback if registered.
     if (typeof this.cbMenuHide === 'function')
-        this.cbMenuHide();
+        this.cbMenuHide('Menu-Hide');
 };
 
 SelectionMenu.prototype.showMessage = function(msg, durationMs, clearSelectionPrefix)
