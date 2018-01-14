@@ -1,7 +1,7 @@
 /*
  * MICROUTILS.US (MODULE)
  *
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -108,6 +108,22 @@ Utils.isInt = function(value)
     return (typeof value !== 'number' || isNaN(value)) ?
         false :
         (value | 0) === value;
+};
+
+Utils._hexSymbols = [
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+];
+
+Utils.toHex = function(num, outputLength)
+{
+    // Generates a fixed-length output, and handles negative numbers properly.
+    var result = '';
+    while (outputLength--) {
+        result = Utils._hexSymbols[num & 0xF] + result;
+        num >>= 4;
+    }
+    return result;
 };
 
 Utils.shuffle = function(arr)
