@@ -5,7 +5,7 @@
  *              jump size and direction, including the ability to jump randomly.
  *              Excellent when queuing lots of images and using mpv as an image
  *              viewer.
- * Version:     1.6.0
+ * Version:     1.7.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -27,7 +27,12 @@ var Options = require('Options'),
 var Leapfrog = function(globalOpts)
 {
     this.fontSize = globalOpts.fontSize;
-    this.fontAlpha = globalOpts.fontAlpha;
+    this.fontAlpha = Ass.convertPercentToHex( // Throws if invalid input.
+        (typeof globalOpts.fontAlpha === 'number' &&
+         globalOpts.fontAlpha >= 0 && globalOpts.fontAlpha <= 1 ?
+         globalOpts.fontAlpha : 1),
+        true // Invert input range so "1.0" is visible and "0.0" is invisible.
+    );
     this.throttleTime = 0;
     this.history = new Stack(200);
     this.randomOrder = {
@@ -69,8 +74,7 @@ Leapfrog.prototype._formatMsg = function(msg, useTextColors)
     var out = Ass.startSeq();
     if (this.fontSize > 0)
         out += Ass.size(this.fontSize);
-    if (this.fontAlpha !== '00')
-        out += Ass.alpha(this.fontAlpha);
+    out += Ass.alpha(this.fontAlpha);
     out += Ass.esc(msg)+Ass.stopSeq();
     return out;
 };
@@ -180,9 +184,9 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
         // * NOTE: Final size can vary in non-fullscreen due to mpv's scaling.
         // * (int) Ex: `-1` (use same size as regular OSD), `16` (size 16).
         font_size: -1,
-        // How transparent the status text should be.
-        // * (hex string) Ex: `00` (fully visible) to `FF` (fully transparent).
-        font_alpha: '00'
+        // How transparent the status text should be (from 0.0 to 1.0).
+        // * (float) Ex: `1.0` (fully visible) to `0.0` (fully transparent).
+        font_alpha: 1.0
     });
 
     // Provide the bindable mpv command which performs the playlist jump.
