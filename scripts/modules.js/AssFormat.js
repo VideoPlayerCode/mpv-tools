@@ -1,7 +1,7 @@
 /*
  * ASSFORMAT.JS (MODULE)
  *
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -11,6 +11,8 @@
 /* global mp, module, require */
 
 'use strict';
+
+var Utils = require('MicroUtils');
 
 var Ass = {};
 
@@ -49,6 +51,21 @@ Ass.size = function(fontSize, output)
 Ass.scale = function(scalePercent, output)
 {
     return output === false ? '' : '{\\fscx'+scalePercent+'\\fscy'+scalePercent+'}';
+};
+
+Ass.convertPercentToHex = function(percent, invertValue)
+{
+    // Tip: Use with "invertValue" to convert input range 0.0 (invisible) - 1.0
+    // (fully visible) to hex range '00' (fully visible) - 'FF' (invisible), for
+    // use with the alpha() function in a logical manner for end-users.
+    if (typeof percent !== 'number' || percent < 0 || percent > 1)
+        throw 'Invalid percentage value (must be 0.0 - 1.0)';
+    return Utils.toHex(
+        Math.floor( // Invert range (optionally), and make into a 0-255 value.
+            255 * (invertValue ? 1 - percent : percent)
+        ),
+        2 // Fixed-size: 2 bytes (00-FF), as needed for hex in ASS subtitles.
+    );
 };
 
 Ass.alpha = function(transparencyHex, output)
