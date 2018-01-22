@@ -7,6 +7,10 @@ help_hint=no
 # Favorite paths.
 favorites={/home/example/Movies}+{/home/example/Downloads}+{/home/example/Documents}+{/}
 
+# Additional file-inclusion pattern (regex).
+# This particular pattern also adds ".rar" and ".zip" files to the file browser.
+include_regex=\.(?:rar|zip)$
+
 # Key rebindings.
 #
 # Recommendation:

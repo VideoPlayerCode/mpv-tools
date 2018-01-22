@@ -3,7 +3,7 @@
  *
  * Description: Advanced, modular media browser, file manager and playlist
  *              manager for mpv.
- * Version:     1.2.1
+ * Version:     1.3.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -66,6 +66,18 @@ var Blackbox = function(options)
 
     // Media file detection regex (pre-compiled since MuJS regexps are slow).
     this.mediaRgx = /\.(?:mp[234]|m4[av]|mpe?g|m[12]v|web[mp]|mk(?:[av]|3d)|h?264|qt|mov|avi|xvid|divx|wm[av]|asf|pcm|flac|aiff|wav|aac|dts|e?ac3|dat|bin|vob|vcd|mt[sv]|m2ts?|ts|flv|f4[vp]|rm(?:vb)?|3(?:gp|iv)|h?dv|og[gmv]|jpe?g|png|bmp|gif)(?:\.part)?$/i;
+
+    // Include the user's custom inclusion regex (if available and non-empty).
+    var includeRgx = options.includeRegex ? Utils.trim(options.includeRegex) : null;
+    if (includeRgx) {
+        try {
+            var userRgx = new RegExp(includeRgx), // Throws if invalid.
+                mergedRgx = '(?:'+this.mediaRgx.source+'|'+userRgx.source+')';
+            this.mediaRgx = new RegExp(mergedRgx, 'i'); // Throws if invalid.
+        } catch (e) {
+            throw 'User\'s include-regex: "'+e.message.replace('regular expression: ', '')+'"';
+        }
+    }
 
     // Active file browser path.
     this.currentPath = null;
@@ -802,6 +814,21 @@ Blackbox.prototype.switchMenu = function(forcePage)
         // * (string) Ex: `{/home/foo}+{/mnt}+{/media}+{/bunny.avi}` to add three paths and a file.
         // - To get to your favorites, press the "Blackbox" hotkey twice.
         favorites: '',
+        // (Advanced users) Optional regex for including more files in browser.
+        // * (string) Ex: `\.(?:rar|zip)$` to include rar and zip files too.
+        // - Note that the regex is ALWAYS case-insensitive and can't use flags.
+        // - There is no need for special "double string escaping". Just write
+        //   the regex as you would write any other native JavaScript regex. But
+        //   with the difference that you don't need to escape forward slashes.
+        // - The regex is matched against the whole filename (not the path), and
+        //   it's your job to ensure it matches what you want, such as anchoring
+        //   it to the extension as in the example above (by writing a period
+        //   followed by your match followed by $ for end-of-filename anchor).
+        // - Your regex will be faster if you use non-capturing groups via `?:`
+        //   such as `(?:hello)` instead of capturing groups `(hello)`.
+        // - Lastly, be aware that MuJS (mpv's JavaScript engine) is slow, so
+        //   if your regex includes tons of files, the browser may slow down.
+        include_regex: '',
         // Keybindings. You can bind any action to multiple keys simultaneously.
         // * (string) Ex: `{up}`, `{up}+{shift+w}` or `{x}+{+}` (binds to "x" and the plus key).
         // - Note that all "shift variants" MUST be specified as "shift+<key>".
@@ -825,6 +852,7 @@ Blackbox.prototype.switchMenu = function(forcePage)
             menuFontSize: userConfig.getValue('font_size'),
             showHelpHint: userConfig.getValue('help_hint'),
             favoritePaths: userConfig.getMultiValue('favorites'),
+            includeRegex: userConfig.getValue('include_regex'),
             keyRebindings: {
                 'Menu-Up': userConfig.getMultiValue('keys_menu_up'),
                 'Menu-Down': userConfig.getMultiValue('keys_menu_down'),
