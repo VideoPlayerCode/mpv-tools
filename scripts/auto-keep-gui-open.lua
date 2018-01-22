@@ -1,7 +1,7 @@
 -- -----------------------------------------------------------
 --
 -- AUTO-KEEP-GUI-OPEN.LUA
--- Version: 1.0
+-- Version: 1.0.1
 -- Author: SteveJobzniak
 -- URL: https://github.com/SteveJobzniak/mpv-tools
 --
@@ -159,8 +159,10 @@ if (mp.get_property("config") ~= "no") then
         "vo-configured",
         "bool",
         function (name, value)
-            if (value) then
+            if (value and mp.get_property("vo") ~= "image") then
                 -- Video output (usually a GUI) has been created.
+                -- NOTE: We ignore the "image" vo driver, which isn't a "real"
+                -- window since it has no GUI and just writes images to disk.
 
                 if (AKGO_WINDOW_KEEP_OPEN_VALUE == "original") then
                     mp.set_property("keep-open", originalKeepOpenValue)
