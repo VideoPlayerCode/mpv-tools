@@ -31,6 +31,13 @@
   scale and max scale. Helps you effortlessly resize a video to fit on your
   desktop, or any other video dimensions you need!
 
+* `[ JS ] TOP!` **[SteveJobzniak's Modules.js (for developers)](https://github.com/SteveJobzniak/mpv-tools/tree/master/scripts/modules.js)**
+
+  Tons of pre-written, open source JavaScript modules which helps you rapidly
+  create your own JS user scripts (including a very helpful [script config](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/modules.js/Options.js)
+  system based on mpv's Lua `mp.options` API). All modules are free to use (and
+  extend) in your own scripts!
+
 ### Download
 
 Easily download all scripts as a zip file: [mpv-tools-master.zip](https://github.com/SteveJobzniak/mpv-tools/archive/master.zip).
