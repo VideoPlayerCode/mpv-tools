@@ -1,7 +1,7 @@
 /*
  * MICROUTILS.US (MODULE)
  *
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -141,6 +141,21 @@ Utils.shuffle = function(arr)
     }
 
     return arr;
+};
+
+Utils.trim = function(str)
+{
+    return str.replace(/(?:^\s+|\s+$)/g, ''); // Trim left and right whitespace.
+};
+
+Utils.ltrim = function(str)
+{
+    return str.replace(/^\s+/, ''); // Trim left whitespace.
+};
+
+Utils.rtrim = function(str)
+{
+    return str.replace(/\s+$/, ''); // Trim right whitespace.
 };
 
 Utils.dump = function(value)
