@@ -3,7 +3,7 @@
  *
  * Description: Advanced, modular media browser, file manager and playlist
  *              manager for mpv.
- * Version:     1.2.0
+ * Version:     1.2.1
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -65,7 +65,7 @@ var Blackbox = function(options)
         this.ignorePaths['/'].home = 1;
 
     // Media file detection regex (pre-compiled since MuJS regexps are slow).
-    this.mediaRgx = /\.(?:mp[234]|m4[av]|mpe?g|m[12]v|web[mp]|mk(?:[av]|3d)|h?264|qt|mov|avi|xvid|divx|wm[av]|asf|pcm|flac|aiff|wav|aac|dts|e?ac3|dat|bin|vob|vcd|mt[sv]|m2ts?|ts|flv|f4[vp]|rm(?:vb)?|3(?:gp|iv)|h?dv|og[gmv]|jpe?g|png|bmp|gif)$/i;
+    this.mediaRgx = /\.(?:mp[234]|m4[av]|mpe?g|m[12]v|web[mp]|mk(?:[av]|3d)|h?264|qt|mov|avi|xvid|divx|wm[av]|asf|pcm|flac|aiff|wav|aac|dts|e?ac3|dat|bin|vob|vcd|mt[sv]|m2ts?|ts|flv|f4[vp]|rm(?:vb)?|3(?:gp|iv)|h?dv|og[gmv]|jpe?g|png|bmp|gif)(?:\.part)?$/i;
 
     // Active file browser path.
     this.currentPath = null;
