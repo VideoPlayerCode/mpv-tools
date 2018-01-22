@@ -1,7 +1,7 @@
 /*
  * SELECTIONMENU.JS (MODULE)
  *
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      SteveJobzniak
  * URL:         https://github.com/SteveJobzniak/mpv-tools
  * License:     Apache License, Version 2.0
@@ -83,7 +83,7 @@ var SelectionMenu = function(settings)
                 if (typeof key !== 'string')
                     throw 'Invalid non-string key ('+JSON.stringify(key)+') in custom rebindings';
                 key = key.toLowerCase(); // Unify case of all keys for de-dupe.
-                key = key.replace(/(?:^\s+|\s+$)/g, ''); // Trim whitespace.
+                key = Utils.trim(key); // Trim whitespace.
                 if (!key.length)
                     continue;
                 if (!erasedDefaults) { // Erase default keys for this action.
