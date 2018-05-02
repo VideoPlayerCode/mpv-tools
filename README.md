@@ -9,10 +9,18 @@
 
   Advanced, modular media browser, file manager and playlist manager for mpv.
 
+* `[ JS ] TOP!` **[Colorbox.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Colorbox.js)**
+
+  Apply color correction presets.
+
 * `[ Lua ]` **[cycle-video-rotate.lua](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/cycle-video-rotate.lua)**
 
   Allows you to perform video rotation which perfectly cycles through all 360
   degrees without any glitches.
+  
+* `[ JS ] TOP!` **[Gallerizer.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Gallerizer.js)**
+
+  Image gallery autoloader for mpv.
 
 * `[ JS ] TOP!` **[Leapfrog.js](https://github.com/SteveJobzniak/mpv-tools/blob/master/scripts/Leapfrog.js)**
 
@@ -42,13 +50,6 @@
 
 Easily download all scripts as a zip file: [mpv-tools-master.zip](https://github.com/SteveJobzniak/mpv-tools/archive/master.zip).
 
-### Update Notifications
-
-To get update notifications, simply ensure that you have a GitHub account, and
-then press the "Star" and (most importantly) "Watch" buttons at the top of this
-project page. You will then receive notifications (via email by default)
-whenever a new version is released.
-
 ### Requirements
 
 You need the [mpv.io](http://mpv.io) media player, built with Lua (`.lua`) and
@@ -64,15 +65,3 @@ contains important sublibraries that are shared by all of my `.js` utilities.
 ### Author
 
 SteveJobzniak (https://github.com/SteveJobzniak)
-
-### Contributing
-
-If you would like to contribute to this project, please feel free to submit a
-pull request, or perhaps even sending a donation as a token of your appreciation.
-
-### Donate as thanks for my work?
-
-Totally optional, but _greatly_ appreciated if my hard work has helped you. ;-)
-
-- ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Donate](https://www.paypal.me/Armindale/0usd)
-- ![btc](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/bitcoin.png) Bitcoin: 18XF1EmrkpYi4fqkR2XcHkcJxuTMYG4bcv
