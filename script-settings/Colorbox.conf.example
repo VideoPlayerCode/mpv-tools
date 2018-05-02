@@ -1,0 +1,32 @@
+# Presets.
+# Format: v1; contrast; brightness; gamma; saturation; hue; sharpen; title
+presets[]=v1; 6;   -2;  0;  -4; 0; 0.6; Subtle depth enhancer (desat)
+presets[]=v1; 6;   -2;  0;   4; 0; 0.6; Subtle depth enhancer (sat)
+presets[]=v1; 7;   -8;  6; -10; 5; 1.3; Clarity darker
+presets[]=v1; 6;   -5;  2; -10; 5; 1.3; Clarity natural/dark
+presets[]=v1; 6;   -3;  1; -10; 5; 1.3; Clarity medium
+presets[]=v1; 6;    0;  1;  -5; 5; 1.3; Clarity light
+presets[]=v1; 6;    1;  4;  -5; 5; 1.3; Clarity lighter
+presets[]=v1; 52; -11; -2;  -6; 4; 1.3; Lift vintage flatness
+presets[]=v1; 21;   3; -2; -30; 8; 1.1; Yellow de-glow and modernize
+
+# Load preset at startup.
+startup_preset=Clarity medium
+
+# Menu appearance.
+auto_close=0
+max_lines=16
+font_size=30
+font_alpha=0.7
+
+# Key rebindings.
+keys_menu_up={up}+{w}
+keys_menu_down={down}+{s}
+keys_menu_up_fast={shift+up}+{shift+w}
+keys_menu_down_fast={shift+down}+{shift+s}
+keys_menu_left={left}+{a}
+keys_menu_right={right}+{d}
+keys_menu_open={enter}+{e}
+keys_menu_undo={bs}+{r}
+keys_menu_help={h}
+keys_menu_close={esc}+{c}
