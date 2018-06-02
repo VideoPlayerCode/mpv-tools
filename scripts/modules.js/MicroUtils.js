@@ -2,8 +2,8 @@
  * MICROUTILS.US (MODULE)
  *
  * Version:     1.3.0
- * Author:      SteveJobzniak
- * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * Author:      VideoPlayerCode
+ * URL:         https://github.com/VideoPlayerCode/mpv-tools
  * License:     Apache License, Version 2.0
  */
 
@@ -52,7 +52,7 @@ Utils.quickSort_Run = function(arr, sortRef)
 
     // Adapted from a great, public-domain C algorithm by Darel Rex Finley.
     // Original implementation: http://alienryderflex.com/quicksort/
-    // Ported by SteveJobzniak and extended to sort via a 2nd reference array,
+    // Ported by VideoPlayerCode and extended to sort via a 2nd reference array,
     // to allow sorting the main array by _any_ criteria via the 2nd array.
     var refPiv, arrPiv, beg = [], end = [], stackMax = -1, stackPtr = 0, L, R;
 

@@ -2,8 +2,8 @@
 --
 -- AUTO-KEEP-GUI-OPEN.LUA
 -- Version: 1.0.1
--- Author: SteveJobzniak
--- URL: https://github.com/SteveJobzniak/mpv-tools
+-- Author: VideoPlayerCode
+-- URL: https://github.com/VideoPlayerCode/mpv-tools
 --
 -- Description:
 --

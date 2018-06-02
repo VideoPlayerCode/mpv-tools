@@ -2,8 +2,8 @@
  * STACK.JS (MODULE)
  *
  * Version:     1.0.0
- * Author:      SteveJobzniak
- * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * Author:      VideoPlayerCode
+ * URL:         https://github.com/VideoPlayerCode/mpv-tools
  * License:     Apache License, Version 2.0
  */
 

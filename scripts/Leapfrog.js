@@ -6,8 +6,8 @@
  *              Excellent when queuing lots of images and using mpv as an image
  *              viewer.
  * Version:     1.7.0
- * Author:      SteveJobzniak
- * URL:         https://github.com/SteveJobzniak/mpv-tools
+ * Author:      VideoPlayerCode
+ * URL:         https://github.com/VideoPlayerCode/mpv-tools
  * License:     Apache License, Version 2.0
  */
 
