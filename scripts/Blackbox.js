@@ -853,18 +853,18 @@ Blackbox.prototype.switchMenu = function(forcePage)
             showHelpHint: userConfig.getValue('help_hint'),
             favoritePaths: userConfig.getMultiValue('favorites'),
             includeRegex: userConfig.getValue('include_regex'),
-            keyRebindings: {
-                'Menu-Up': userConfig.getMultiValue('keys_menu_up'),
-                'Menu-Down': userConfig.getMultiValue('keys_menu_down'),
-                'Menu-Up-Fast': userConfig.getMultiValue('keys_menu_up_fast'),
-                'Menu-Down-Fast': userConfig.getMultiValue('keys_menu_down_fast'),
-                'Menu-Left': userConfig.getMultiValue('keys_menu_left'),
-                'Menu-Right': userConfig.getMultiValue('keys_menu_right'),
-                'Menu-Open': userConfig.getMultiValue('keys_menu_open'),
-                'Menu-Undo': userConfig.getMultiValue('keys_menu_undo'),
-                'Menu-Help': userConfig.getMultiValue('keys_menu_help'),
-                'Menu-Close': userConfig.getMultiValue('keys_menu_close')
-            }
+            // keyRebindings: {
+                // 'Menu-Up': userConfig.getMultiValue('keys_menu_up'),
+                // 'Menu-Down': userConfig.getMultiValue('keys_menu_down'),
+                // 'Menu-Up-Fast': userConfig.getMultiValue('keys_menu_up_fast'),
+                // 'Menu-Down-Fast': userConfig.getMultiValue('keys_menu_down_fast'),
+                // 'Menu-Left': userConfig.getMultiValue('keys_menu_left'),
+                // 'Menu-Right': userConfig.getMultiValue('keys_menu_right'),
+                // 'Menu-Open': userConfig.getMultiValue('keys_menu_open'),
+                // 'Menu-Undo': userConfig.getMultiValue('keys_menu_undo'),
+                // 'Menu-Help': userConfig.getMultiValue('keys_menu_help'),
+                // 'Menu-Close': userConfig.getMultiValue('keys_menu_close')
+            // }
         });
     } catch (e) {
         mp.msg.error('Blackbox: '+e+'.');
