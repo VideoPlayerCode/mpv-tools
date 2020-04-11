@@ -53,13 +53,13 @@ var SelectionMenu = function(settings)
         settings.autoCloseDelay >= 0 ? settings.autoCloseDelay : 5; // 0 = Off.
     this.autoCloseActiveAt = 0;
     this.keyBindings = { // Default keybindings.
-        'Menu-Up':{repeatable:true, keys:['up']},
-        'Menu-Down':{repeatable:true, keys:['down']},
+        'Menu-Up':{repeatable:true, keys:['up','WHEEL_UP', 'k'] },
+        'Menu-Down':{repeatable:true, keys:['down', 'WHEEL_DOWN', 'j' ]},
         'Menu-Up-Fast':{repeatable:true, keys:['shift+up']},
         'Menu-Down-Fast':{repeatable:true, keys:['shift+down']},
         'Menu-Left':{repeatable:true, keys:['left']},
         'Menu-Right':{repeatable:false, keys:['right']},
-        'Menu-Open':{repeatable:false, keys:['enter']},
+        'Menu-Open':{repeatable:false, keys:['enter', 'MBTN_LEFT']},
         'Menu-Undo':{repeatable:false, keys:['bs']},
         'Menu-Help':{repeatable:false, keys:['h']},
         'Menu-Close':{repeatable:false, keys:['esc']}
