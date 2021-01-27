@@ -12,6 +12,12 @@
 --
 -- -----------------------------------------------------------
 
+function cycle_video_rotate_reset()
+    -- Reset rotation and tell the user.
+    mp.set_property_number("video-rotate", 0)
+    mp.osd_message("Rotate: Reset")
+end
+
 function cycle_video_rotate(amt)
     -- Ensure that amount is a base 10 integer.
     amt = tonumber(amt, 10)
@@ -31,6 +37,10 @@ function cycle_video_rotate(amt)
 end
 
 -- Bind this via input.conf. Example:
---   Alt+LEFT script-message Cycle_Video_Rotate -90
---   Alt+RIGHT script-message Cycle_Video_Rotate 90
+--   Alt+SHIFT+LEFT script-message Cycle_Video_Rotate -90
+--   Alt+SHIFT+RIGHT script-message Cycle_Video_Rotate 90
 mp.register_script_message("Cycle_Video_Rotate", cycle_video_rotate)
+
+-- Bind this via input.conf. Example:
+--   Alt+SHIFT+DOWN script-message Cycle_Video_Rotate_Reset
+mp.register_script_message("Cycle_Video_Rotate_Reset", cycle_video_rotate_reset)
