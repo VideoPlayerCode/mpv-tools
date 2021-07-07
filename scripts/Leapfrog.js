@@ -176,7 +176,7 @@ Leapfrog.prototype.jump = function(offset, rawOptions)
 (function() {
     // Read user configuration (uses defaults for any unconfigured options).
     // * You can override these values via the configuration system, as follows:
-    // - Via permanent file: `<mpv config dir>/script-settings/Leapfrog.conf`
+    // - Via permanent file: `<mpv config dir>/script-opts/Leapfrog.conf`
     // - Command override: `mpv --script-opts=Leapfrog-font_size=16`
     // - Or by editing this file directly (not recommended, makes your updates harder).
     var userConfig = new Options.advanced_options({

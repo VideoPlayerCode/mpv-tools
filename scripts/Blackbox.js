@@ -794,7 +794,7 @@ Blackbox.prototype.switchMenu = function(forcePage)
 (function() {
     // Read user configuration (uses defaults for any unconfigured options).
     // * You can override these values via the configuration system, as follows:
-    // - Via permanent file: `<mpv config dir>/script-settings/Blackbox.conf`
+    // - Via permanent file: `<mpv config dir>/script-opts/Blackbox.conf`
     // - Command override: `mpv --script-opts=Blackbox-favorites="{/path1}+{/path2}"`
     // - Or by editing this file directly (not recommended, makes your updates harder).
     var userConfig = new Options.advanced_options({

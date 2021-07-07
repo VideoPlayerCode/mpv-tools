@@ -1,7 +1,7 @@
 ## Script Configurations
 
 This folder contains example configuration files. To enable them on your own
-system, simply create the `script-settings/` folder in your mpv config path,
+system, simply create the `script-opts/` folder in your mpv config path,
 exactly as shown here (side by side with your `scripts/` folder).
 
 The configurations automatically follow the `<current script name>.conf` format,
