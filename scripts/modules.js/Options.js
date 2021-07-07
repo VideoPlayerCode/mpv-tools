@@ -65,7 +65,10 @@ var ScriptConfig = function(options, identifier)
     // Find config file.
     if (this.scriptName && this.scriptName.length) {
         mp.msg.debug('Reading options for '+this.scriptName+'.');
-        this.configFile = mp.find_config_file('script-settings/'+this.scriptName+'.conf');
+        this.configFile = mp.find_config_file('script-opts/'+this.scriptName+'.conf');
+
+        if (!this.configFile) // Try legacy settings location as fallback.
+            this.configFile = mp.find_config_file('script-settings/'+this.scriptName+'.conf');
         if (!this.configFile) // Try legacy settings location as fallback.
             this.configFile = mp.find_config_file('lua-settings/'+this.scriptName+'.conf');
     }
